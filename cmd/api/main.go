@@ -1,7 +1,19 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"log"
+)
 
 func main() {
-	fmt.Println("babymike")
+	ctx := context.Background()
+
+	api, err := NewApiContext(ctx)
+	if err != nil {
+		log.Fatal("server initialization failed", "error", err)
+	}
+
+	if err := api.Run(); err != nil {
+		log.Fatal("server error:", "error", err)
+	}
 }

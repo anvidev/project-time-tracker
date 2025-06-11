@@ -1,0 +1,84 @@
+package main
+
+import (
+	"context"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/anvidev/project-time-tracker/internal/database"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+func (api *api) handler() http.Handler {
+	r := chi.NewMux()
+
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.StripSlashes)
+
+	r.Route("/v1", func(r chi.Router) {
+
+	})
+
+	return r
+}
+
+type api struct {
+	logger *slog.Logger
+	config config
+}
+
+func (api *api) Run() error {
+	mux := api.handler()
+
+	srv := &http.Server{
+		Addr:         api.config.server.addr,
+		ReadTimeout:  api.config.server.readTimeout,
+		WriteTimeout: api.config.server.writeTimeout,
+		IdleTimeout:  api.config.server.idleTimeout,
+		Handler:      mux,
+	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		api.logger.Info("server starting", "addr", api.config.server.addr, "env", api.config.server.env)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			api.logger.Error("server failed to start", "error", err)
+		}
+	}()
+
+	<-quit
+	api.logger.Info("server shutting down")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	return srv.Shutdown(shutdownCtx)
+}
+
+func NewApiContext(ctx context.Context) (*api, error) {
+	logger := slog.Default()
+	config := loadConfig()
+
+	_, err := database.NewContext(ctx, config.database.url, config.database.token)
+	if err != nil {
+		logger.Error("database connection failed", "error", err)
+		return nil, err
+	}
+
+	api := &api{
+		logger: logger,
+		config: config,
+	}
+
+	return api, nil
+}
