@@ -3,7 +3,7 @@ module github.com/anvidev/project-time-tracker
 go 1.23.4
 
 require (
-	github.com/anvidev/goenv v0.1.0
+	github.com/anvidev/goenv v0.1.1
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
 )
