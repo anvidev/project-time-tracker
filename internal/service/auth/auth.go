@@ -10,8 +10,8 @@ type Service struct {
 	queryTimeout time.Duration
 }
 
-func NewService(db *sql.DB) Service {
-	return Service{
+func NewService(db *sql.DB) *Service {
+	return &Service{
 		db:           db,
 		queryTimeout: 5 * time.Second,
 	}

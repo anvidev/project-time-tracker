@@ -1,13 +1,14 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/anvidev/project-time-tracker/internal/service/auth"
 )
 
 type Service struct {
-	Auth auth.Service
+	Auth AuthServicer
 }
 
 func NewService(db *sql.DB) *Service {
@@ -17,8 +18,8 @@ func NewService(db *sql.DB) *Service {
 }
 
 type AuthServicer interface {
-	Register()
-	Login()
-	Validate()
-	CreateSession()
+	Register(context.Context, auth.RegisterRequest) (*auth.User, error)
+	// Login()
+	// Validate()
+	// CreateSession()
 }
