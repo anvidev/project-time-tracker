@@ -12,6 +12,9 @@ serve:
 
 run: build serve
 
+docker-dev:
+	@docker-compose -f docker-compose.dev.yaml up --build
+
 migrate:
 	@read -p "Enter the sequence name: " SEQ; \
 	GOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=$(GOOSE_DBSTRING) GOOSE_MIGRATION_DIR=$(GOOSE_MIGRATION_DIR) goose create $${SEQ} sql

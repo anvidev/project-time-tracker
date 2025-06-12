@@ -1,0 +1,23 @@
+services:
+
+  api:
+    container_name: ptt-api
+    build: .
+    ports:
+      - 9090:9090
+    environment:
+      TURSO_DATABASE_URL: ${TURSO_DATABASE_URL}
+      TURSO_AUTH_TOKEN: ${TURSO_AUTH_TOKEN}
+
+      SERVER_ENV: ${SERVER_ENV}
+      SERVER_ADDR: ${SERVER_ADDR}
+      SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT}
+      SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
+      SERVER_IDLE_TIMEOUT: ${SERVER_IDLE_TIMEOUT}
+    volumes:
+      - ./cmd:/app/cmd
+      - ./internal:/app/internal
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./.air.toml:/app/.air.toml
+      - /app/tmp
