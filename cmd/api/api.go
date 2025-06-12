@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/anvidev/project-time-tracker/internal/database"
+	"github.com/anvidev/project-time-tracker/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -24,15 +25,18 @@ func (api *api) handler() http.Handler {
 	r.Use(middleware.StripSlashes)
 
 	r.Route("/v1", func(r chi.Router) {
-
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", api.authRegister)
+		})
 	})
 
 	return r
 }
 
 type api struct {
-	logger *slog.Logger
-	config config
+	config  config
+	logger  *slog.Logger
+	service *service.Service
 }
 
 func (api *api) Run() error {
@@ -69,15 +73,18 @@ func NewApiContext(ctx context.Context) (*api, error) {
 	logger := slog.Default()
 	config := loadConfig()
 
-	_, err := database.NewContext(ctx, config.database.url, config.database.token)
+	db, err := database.NewContext(ctx, config.database.url, config.database.token)
 	if err != nil {
 		logger.Error("database connection failed", "error", err)
 		return nil, err
 	}
 
+	service := service.NewService(db)
+
 	api := &api{
-		logger: logger,
-		config: config,
+		logger:  logger,
+		config:  config,
+		service: service,
 	}
 
 	return api, nil
