@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/anvidev/project-time-tracker/internal/database"
-	"github.com/anvidev/project-time-tracker/internal/service"
+	"github.com/anvidev/project-time-tracker/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -27,6 +27,7 @@ func (api *api) handler() http.Handler {
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", api.authRegister)
+			r.Post("/login", api.authLogin)
 		})
 	})
 
@@ -34,9 +35,9 @@ func (api *api) handler() http.Handler {
 }
 
 type api struct {
-	config  config
-	logger  *slog.Logger
-	service *service.Service
+	config config
+	logger *slog.Logger
+	store  *store.Store
 }
 
 func (api *api) Run() error {
@@ -79,12 +80,12 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		return nil, err
 	}
 
-	service := service.NewService(db)
+	store := store.NewStore(db)
 
 	api := &api{
-		logger:  logger,
-		config:  config,
-		service: service,
+		logger: logger,
+		config: config,
+		store:  store,
 	}
 
 	return api, nil

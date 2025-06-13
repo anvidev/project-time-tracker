@@ -1,8 +1,7 @@
-package auth
+package users
 
 import (
 	"fmt"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,13 +12,13 @@ const (
 )
 
 type User struct {
-	Id        int       `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Role      string    `json:"role"`
-	Password  Password  `json:"-"`
-	IsActive  bool      `json:"isActive"`
-	CreatedAt time.Time `json:"createdAt"`
+	Id        int64    `json:"id"`
+	Name      string   `json:"name"`
+	Email     string   `json:"email"`
+	Role      string   `json:"role"`
+	Password  Password `json:"-"`
+	IsActive  bool     `json:"isActive"`
+	CreatedAt string   `json:"createdAt"`
 }
 
 type Password struct {
@@ -42,19 +41,13 @@ func (p *Password) Matches(plaintext string) bool {
 	return bcrypt.CompareHashAndPassword(p.hash, []byte(plaintext)) == nil
 }
 
-type Session struct {
-	Token     string    `json:"token"`
-	UserId    int       `json:"userId"`
-	ExpiresAt time.Time `json:"expiresAt"`
-}
-
-type RegisterRequest struct {
+type RegisterUserInput struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type LoginRequest struct {
+type LoginUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

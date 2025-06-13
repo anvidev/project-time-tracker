@@ -26,3 +26,23 @@ func NewContext(ctx context.Context, url, token string) (*sql.DB, error) {
 
 	return db, nil
 }
+
+func WithTx(ctx context.Context, db *sql.DB, f func(tx *sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if err := f(tx); err != nil {
+		if err := tx.Rollback(); err != nil {
+			return err
+		}
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}

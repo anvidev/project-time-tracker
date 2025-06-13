@@ -1,17 +1,17 @@
-package auth
+package users
 
 import (
 	"database/sql"
 	"time"
 )
 
-type Service struct {
+type Store struct {
 	db           *sql.DB
 	queryTimeout time.Duration
 }
 
-func NewService(db *sql.DB) *Service {
-	return &Service{
+func NewStore(db *sql.DB) *Store {
+	return &Store{
 		db:           db,
 		queryTimeout: 5 * time.Second,
 	}
