@@ -15,6 +15,6 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{
 		db:               db,
 		queryTimeout:     5 * time.Second,
-		sessionExpiresIn: 24 * time.Hour * 5,
+		sessionExpiresIn: 24 * time.Hour * 7,
 	}
 }
