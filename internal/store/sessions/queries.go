@@ -132,13 +132,13 @@ func (s *Store) Validate(ctx context.Context, token string) (*Session, error) {
 	}
 }
 
-func (s *Store) Invalidate(ctx context.Context, token string) error {
+func (s *Store) InvalidateAll(ctx context.Context, userId int64) error {
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
 	defer cancel()
 
-	stmt := `delete from sessions where token = ?`
+	stmt := `delete from sessions where user_id = ?`
 
-	result, err := s.db.ExecContext(ctx, stmt, token)
+	result, err := s.db.ExecContext(ctx, stmt, userId)
 	if err != nil {
 		return err
 	}

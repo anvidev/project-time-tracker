@@ -23,7 +23,7 @@ func NewStore(db *sql.DB) *Store {
 type SessionStorer interface {
 	Create(ctx context.Context, userId int64) (*sessions.Session, error)
 	Validate(ctx context.Context, token string) (*sessions.Session, error)
-	Invalidate(ctx context.Context, token string) error
+	InvalidateAll(ctx context.Context, userId int64) error
 }
 
 type UserStorer interface {
