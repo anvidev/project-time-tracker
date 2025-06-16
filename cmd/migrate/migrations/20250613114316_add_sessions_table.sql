@@ -8,9 +8,13 @@ create table if not exists sessions (
   updated_at text not null
 );
 
+create index idx_sessions_user_id on sessions (user_id);
+
 -- +goose StatementEnd
 -- +goose Down
 -- +goose StatementBegin
+drop index if exists idx_sessions_user_id;
+
 drop table if exists sessions;
 
 -- +goose StatementEnd
