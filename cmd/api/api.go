@@ -32,7 +32,16 @@ func (api *api) handler() http.Handler {
 
 		r.Route("/time_entries", func(r chi.Router) {
 			r.Use(api.bearerAuthorization)
-			r.Get("/categories", api.entriesCategories)
+			r.Post("/", api.entriesRegisterTime)
+			r.Route("/{userId}", func(r chi.Router) {
+				r.Get("/day/{date}", api.entriesSummaryDay)
+				r.Get("/month/{month}/{year}", api.entriesSummaryMonth)
+			})
+			r.Route("/categories", func(r chi.Router) {
+				r.Get("/", api.entriesCategories)
+				r.Put("/{id}/follow", nil)
+				r.Put("/{id}/unfollow", nil)
+			})
 		})
 	})
 

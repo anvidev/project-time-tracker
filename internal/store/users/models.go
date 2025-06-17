@@ -18,7 +18,7 @@ type User struct {
 	Role      string   `json:"role"`
 	Password  Password `json:"-"`
 	IsActive  bool     `json:"isActive"`
-	CreatedAt string   `json:"createdAt"`
+	CreatedAt string   `json:"createdAt"` // yyyy-MM-dd (time.DateOnly)
 }
 
 type Password struct {
