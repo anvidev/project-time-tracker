@@ -57,7 +57,7 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 			if (res.ok) {
 				return {
 					ok: true,
-					data: await res.json()
+					data: await res.json().then((data) => data.session)
 				};
 			}
 
