@@ -28,14 +28,11 @@ func (api *api) handler() http.Handler {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", api.authRegister)
 			r.Post("/login", api.authLogin)
+		})
 
-			r.Group(func(r chi.Router) {
-				r.Use(api.bearerAuthorization)
-				r.Get("/foo", func(w http.ResponseWriter, r *http.Request) {
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte("bar"))
-				})
-			})
+		r.Route("/time_entries", func(r chi.Router) {
+			r.Use(api.bearerAuthorization)
+			r.Get("/categories", api.entriesCategories)
 		})
 	})
 

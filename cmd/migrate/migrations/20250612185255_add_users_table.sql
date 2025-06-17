@@ -10,9 +10,13 @@ create table if not exists users (
   created_at text not null
 );
 
+create index idx_users_email on users (email);
+
 -- +goose StatementEnd
 -- +goose Down
 -- +goose StatementBegin
+drop index if exists idx_users_email;
+
 drop table if exists users;
 
 -- +goose StatementEnd
