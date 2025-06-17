@@ -41,5 +41,5 @@ The application will be available at `http://localhost:9090`
 ### Authed
  - `GET /v1/me/categories` - List followed categories
  - `POST /v1/me/time_entries` - Make new time entry
- - `GET /v1/me/day/{date}` - Get summary for date (YYYY-MM-DD)
- - `GET /v1/me/day/{year-month}` - Get summary for month (YYYY-MM)
+ - `GET /v1/me/time_entries/day/{date}` - Get summary for date (YYYY-MM-DD)
+ - `GET /v1/me/time_entries/day/{year-month}` - Get summary for month (YYYY-MM)
