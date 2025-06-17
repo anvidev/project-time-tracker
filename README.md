@@ -35,11 +35,11 @@ The application will be available at `http://localhost:9090`
 
 ### Public
 
-`POST /v1/auth/register` - Register user
-`POST /v1/auth/login` - Login
+ - `POST /v1/auth/register` - Register user
+ - `POST /v1/auth/login` - Login
 
 ### Authed
-`GET /v1/me/categories` - List followed categories
-`POST /v1/me/time_entries` - Make new time entry
-`GET /v1/me/day/{date}` - Get summary for date
-`GET /v1/me/day/{year-month}` - Get summary for month
+ - `GET /v1/me/categories` - List followed categories
+ - `POST /v1/me/time_entries` - Make new time entry
+ - `GET /v1/me/day/{date}` - Get summary for date
+ - `GET /v1/me/day/{year-month}` - Get summary for month
