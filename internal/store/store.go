@@ -3,24 +3,34 @@ package store
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/anvidev/project-time-tracker/internal/store/categories"
 	"github.com/anvidev/project-time-tracker/internal/store/sessions"
+	"github.com/anvidev/project-time-tracker/internal/store/time_entries"
 	"github.com/anvidev/project-time-tracker/internal/store/users"
 )
 
 type Store struct {
-	Categories CategoriesStorer
-	Sessions   SessionStorer
-	Users      UserStorer
+	TimeEntries TimeEntriesStorer
+	Categories  CategoriesStorer
+	Sessions    SessionStorer
+	Users       UserStorer
 }
 
 func NewStore(db *sql.DB) *Store {
 	return &Store{
-		Categories: categories.NewStore(db),
-		Sessions:   sessions.NewStore(db),
-		Users:      users.NewStore(db),
+		TimeEntries: time_entries.NewStore(db),
+		Categories:  categories.NewStore(db),
+		Sessions:    sessions.NewStore(db),
+		Users:       users.NewStore(db),
 	}
+}
+
+type TimeEntriesStorer interface {
+	Register(ctx context.Context, userId int64, input time_entries.RegisterTimeEntryInput) (*time_entries.TimeEntry, error)
+	SummaryDay(ctx context.Context, userId int64, date string) (*time_entries.SummaryDay, error)
+	SummaryMonth(ctx context.Context, userId int64, month time.Month, year int) (*time_entries.SummaryMonth, error)
 }
 
 type CategoriesStorer interface {

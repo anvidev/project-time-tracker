@@ -21,6 +21,7 @@ var (
 	ErrorCodeConflict               = "CONFLICT"
 	ErrorCodeUnauthorized           = "UNAUTHORIZED"
 	ErrorCodeTooManyRequests        = "TOO_MANY_REQUESTS"
+	ErrorCodeRequestTimeout         = "REQUEST_TIMEOUT"
 )
 
 func init() {
@@ -106,4 +107,13 @@ func (api *api) tooManyRequestsError(w http.ResponseWriter, r *http.Request, err
 		"error", err.Error())
 
 	api.writeJSON(w, http.StatusTooManyRequests, newErrorEnvelope(err.Error(), ErrorCodeTooManyRequests))
+}
+
+func (api *api) requestTimeout(w http.ResponseWriter, r *http.Request, err error) {
+	api.logger.Warn("request timed out",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"error", err.Error())
+
+	api.writeJSON(w, http.StatusRequestTimeout, newErrorEnvelope("request timed out", ErrorCodeTooManyRequests))
 }

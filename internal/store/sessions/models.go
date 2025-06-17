@@ -5,9 +5,9 @@ import "time"
 type Session struct {
 	Token     string `json:"token"`
 	UserId    int64  `json:"userId"`
-	ExpiresAt string `json:"expiresAt"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	ExpiresAt string `json:"expiresAt"` // yyyy-MM-dd (time.DateOnly)
+	CreatedAt string `json:"createdAt"` // yyyy-MM-dd (time.DateOnly)
+	UpdatedAt string `json:"updatedAt"` // yyyy-MM-dd (time.DateOnly)
 }
 
 func (s Session) IsExpired() bool {
