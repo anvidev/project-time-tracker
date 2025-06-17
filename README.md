@@ -40,6 +40,9 @@ The application will be available at `http://localhost:9090`
 
 ### Authed
  - `GET /v1/me/categories` - List followed categories
+ - `PUT /v1/me/categories/{id}/follow` - Follows category
+ - `PUT /v1/me/categories/{id}/unfollow` - Unfollows category
  - `POST /v1/me/time_entries` - Make new time entry
+ - `DELETE /v1/me/time_entries/{id}` - Delete a time entry
  - `GET /v1/me/time_entries/day/{date}` - Get summary for date (YYYY-MM-DD)
  - `GET /v1/me/time_entries/month/{year-month}` - Get summary for month (YYYY-MM)

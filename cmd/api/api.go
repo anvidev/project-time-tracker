@@ -33,15 +33,15 @@ func (api *api) handler() http.Handler {
 		r.Route("/me", func(r chi.Router) {
 			r.Use(api.bearerAuthorization)
 			r.Route("/categories", func(r chi.Router) {
-				r.Use(api.bearerAuthorization)
 				r.Get("/", api.entriesCategories)
-				r.Put("/{id}/follow", nil)
-				r.Put("/{id}/unfollow", nil)
+				r.Put("/{id}/follow", api.entriesFollowCategory)
+				r.Put("/{id}/unfollow", api.entriesUnfollowCategory)
 			})
 
 			r.Route("/time_entries", func(r chi.Router) {
 				r.Post("/", api.entriesRegisterTime)
-				r.Get("/day/{date}", api.entriesSummaryDay)      // date: YYYY-MM-DD
+				r.Delete("/{id}", api.entriesDelete)
+				r.Get("/day/{date}", api.entriesSummaryDay)           // date: YYYY-MM-DD
 				r.Get("/month/{year-month}", api.entriesSummaryMonth) // month: YYYY-MM
 			})
 		})
