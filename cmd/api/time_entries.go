@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/anvidev/project-time-tracker/internal/store/time_entries"
@@ -21,7 +23,7 @@ func (api *api) entriesCategories(w http.ResponseWriter, r *http.Request) {
 		"categories": leafCategories,
 	}
 
-	w.Header().Add("Cache-Control", "private, max-age=600")
+	// w.Header().Add("Cache-Control", "private, max-age=600")
 
 	if err := api.writeJSON(w, http.StatusOK, response); err != nil {
 		api.internalServerError(w, r, err)
@@ -57,19 +59,9 @@ func (api *api) entriesRegisterTime(w http.ResponseWriter, r *http.Request) {
 
 func (api *api) entriesSummaryDay(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
-	queryUserId, err := strconv.ParseInt(r.PathValue("userId"), 10, 64)
-	if err != nil {
-		api.badRequestError(w, r, err)
-		return
-	}
-
-	if userId != queryUserId {
-		api.unauthorizedError(w, r, err)
-		return
-	}
 
 	date := r.PathValue("date")
-	_, err = time.Parse(time.DateOnly, date)
+	_, err := time.Parse(time.DateOnly, date)
 	if err != nil {
 		api.badRequestError(w, r, err)
 		return
@@ -93,24 +85,20 @@ func (api *api) entriesSummaryDay(w http.ResponseWriter, r *http.Request) {
 
 func (api *api) entriesSummaryMonth(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
-	queryUserId, err := strconv.ParseInt(r.PathValue("userId"), 10, 64)
+
+	monthParts := strings.Split(r.PathValue("month"), "-")
+	if len(monthParts) != 2 {
+		api.badRequestError(w, r, fmt.Errorf("invalid month format"))
+		return
+	}
+
+	year, err := strconv.Atoi(monthParts[0])
 	if err != nil {
 		api.badRequestError(w, r, err)
 		return
 	}
 
-	if userId != queryUserId {
-		api.unauthorizedError(w, r, err)
-		return
-	}
-
-	month, err := strconv.ParseInt(r.PathValue("month"), 10, 64)
-	if err != nil {
-		api.badRequestError(w, r, err)
-		return
-	}
-
-	year, err := strconv.Atoi(r.PathValue("year"))
+	month, err := strconv.ParseInt(monthParts[1], 10, 64)
 	if err != nil {
 		api.badRequestError(w, r, err)
 		return

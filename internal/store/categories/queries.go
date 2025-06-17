@@ -13,7 +13,7 @@ func (s *Store) Leafs(ctx context.Context, userId int64) ([]Category, error) {
 		  select id, title, parent_id, is_retired, is_retired as path_parent_retired, title as root_parent_title
 		  from categories c
           join users_categories_link ucl on ucl.category_id = c.id
-		  where ucl.user_id = 1
+		  where ucl.user_id = ?
           
 		  union all
           

@@ -2,6 +2,8 @@ package time_entries
 
 import (
 	"context"
+	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -112,21 +114,44 @@ func (s *Store) SummaryMonth(ctx context.Context, userId int64, month time.Month
 
 	daysInMonth := time.Date(year, month+1, 0, 0, 0, 0, 0, time.UTC).Day()
 
+	type result struct {
+		summary *SummaryDay
+		err     error
+	}
+
+	results := make(chan result, daysInMonth)
+
+	for i := 1; i <= daysInMonth; i++ {
+		go func(i int) {
+			date := time.Date(year, month, i, 0, 0, 0, 0, time.UTC).Format(time.DateOnly)
+			summaryDay, err := s.SummaryDay(ctx, userId, date)
+			if err != nil {
+				results <- result{err: fmt.Errorf("could not get summary for date %s: %w", date, err)}
+				return
+			}
+			results <- result{summary: summaryDay}
+		}(i)
+
+	}
+
 	summaryMonth := SummaryMonth{
 		Month: strings.ToLower(month.String()),
 	}
 
-	for i := 1; i <= daysInMonth; i++ {
-		date := time.Date(year, month, i, 0, 0, 0, 0, time.UTC).Format(time.DateOnly)
-		summaryDay, err := s.SummaryDay(ctx, userId, date)
-		if err != nil {
-			return nil, err
+	for range daysInMonth {
+		r := <-results
+		if r.err != nil {
+			cancel()
+			return nil, r.err
 		}
-
-		summaryMonth.Days = append(summaryMonth.Days, *summaryDay)
-		summaryMonth.TotalHours.Duration += summaryDay.TotalHours.Duration
-		summaryMonth.MaxHours.Duration += summaryDay.MaxHours.Duration
+		summaryMonth.Days = append(summaryMonth.Days, *r.summary)
+		summaryMonth.TotalHours.Duration += r.summary.TotalHours.Duration
+		summaryMonth.MaxHours.Duration += r.summary.MaxHours.Duration
 	}
+
+	slices.SortFunc(summaryMonth.Days, func(a, b SummaryDay) int {
+		return strings.Compare(a.Date, b.Date)
+	})
 
 	return &summaryMonth, nil
 }

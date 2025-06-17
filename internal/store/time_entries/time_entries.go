@@ -13,6 +13,6 @@ type Store struct {
 func NewStore(db *sql.DB) *Store {
 	return &Store{
 		db:           db,
-		queryTimeout: 5 * time.Second,
+		queryTimeout: 10 * time.Second,
 	}
 }

@@ -30,19 +30,22 @@ func (api *api) handler() http.Handler {
 			r.Post("/login", api.authLogin)
 		})
 
-		r.Route("/time_entries", func(r chi.Router) {
+		r.Route("/me", func(r chi.Router) {
 			r.Use(api.bearerAuthorization)
-			r.Post("/", api.entriesRegisterTime)
-			r.Route("/{userId}", func(r chi.Router) {
-				r.Get("/day/{date}", api.entriesSummaryDay)
-				r.Get("/month/{month}/{year}", api.entriesSummaryMonth)
-			})
 			r.Route("/categories", func(r chi.Router) {
+				r.Use(api.bearerAuthorization)
 				r.Get("/", api.entriesCategories)
 				r.Put("/{id}/follow", nil)
 				r.Put("/{id}/unfollow", nil)
 			})
+
+			r.Route("/time_entries", func(r chi.Router) {
+				r.Post("/", api.entriesRegisterTime)
+				r.Get("/day/{date}", api.entriesSummaryDay)      // date: YYYY-MM-DD
+				r.Get("/month/{month}", api.entriesSummaryMonth) // month: YYYY-MM
+			})
 		})
+
 	})
 
 	return r
