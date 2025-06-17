@@ -1,6 +1,16 @@
 package categories
 
-import "context"
+import (
+	"context"
+	"errors"
+	"strings"
+)
+
+var (
+	ErrAlreadyFollowed      = errors.New("already following category")
+	ErrNotFollowingCategory = errors.New("category is not followed")
+	ErrCategoryNotFollowed  = errors.New("category was not followed")
+)
 
 func (s *Store) Leafs(ctx context.Context, userId int64) ([]Category, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
@@ -50,4 +60,58 @@ func (s *Store) Leafs(ctx context.Context, userId int64) ([]Category, error) {
 	}
 
 	return categories, nil
+}
+
+func (s *Store) Follow(ctx context.Context, id, userId int64) error {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		insert into users_categories_link (category_id, user_id)
+		values (?, ?)
+	`
+
+	result, err := s.db.ExecContext(ctx, stmt, id, userId)
+	if err != nil {
+		switch {
+		case strings.Contains(err.Error(), "UNIQUE constraint failed"):
+			return ErrAlreadyFollowed
+		default:
+			return err
+		}
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return ErrCategoryNotFollowed
+	}
+
+	return nil
+}
+
+func (s *Store) Unfollow(ctx context.Context, id, userId int64) error {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `delete from users_categories_link where category_id = ? and user_id = ?`
+
+	result, err := s.db.ExecContext(ctx, stmt, id, userId)
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return ErrNotFollowingCategory
+	}
+
+	return nil
 }

@@ -2,12 +2,17 @@ package time_entries
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/anvidev/project-time-tracker/internal/types"
+)
+
+var (
+	ErrTimeEntryNotDeleted = errors.New("time entry not deleted")
 )
 
 func (s *Store) Register(ctx context.Context, userId int64, input RegisterTimeEntryInput) (*TimeEntry, error) {
@@ -154,4 +159,27 @@ func (s *Store) SummaryMonth(ctx context.Context, userId int64, month time.Month
 	})
 
 	return &summaryMonth, nil
+}
+
+func (s *Store) Delete(ctx context.Context, id, userId int64) error {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `delete from time_entries where id = ? and user_id = ?`
+
+	result, err := s.db.ExecContext(ctx, stmt, id, userId)
+	if err != nil {
+		return err
+	}
+
+	affacted, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affacted != 1 {
+		return ErrTimeEntryNotDeleted
+	}
+
+	return nil
 }
