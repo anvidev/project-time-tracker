@@ -86,7 +86,7 @@ func (api *api) entriesSummaryDay(w http.ResponseWriter, r *http.Request) {
 func (api *api) entriesSummaryMonth(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
 
-	monthParts := strings.Split(r.PathValue("month"), "-")
+	monthParts := strings.Split(r.PathValue("year-month"), "-")
 	if len(monthParts) != 2 {
 		api.badRequestError(w, r, fmt.Errorf("invalid month format"))
 		return
