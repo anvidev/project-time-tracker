@@ -56,17 +56,12 @@ func (s *Store) Register(ctx context.Context, userId int64, input RegisterTimeEn
 	return &entry, nil
 }
 
-func (s *Store) SummaryDay(ctx context.Context, userId int64, date string) (*SummaryDay, error) {
+func (s *Store) SummaryDay(ctx context.Context, userId int64, date time.Time) (*SummaryDay, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
 	defer cancel()
 
-	parsedDate, err := time.Parse(time.DateOnly, date)
-	if err != nil {
-		return nil, err
-	}
-
 	summary, err := database.WithTxResult(ctx, s.db, func(tx *sql.Tx) (*SummaryDay, error) {
-		weekdayHours, err := s.getWeekdayHours(ctx, tx, userId, parsedDate.Weekday())
+		weekdayHours, err := s.getWeekdayHours(ctx, tx, userId, date.Weekday())
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +72,7 @@ func (s *Store) SummaryDay(ctx context.Context, userId int64, date string) (*Sum
 		}
 
 		day.MaxHours = *weekdayHours
-		day.Weekday = strings.ToLower(parsedDate.Weekday().String())
+		day.Weekday = strings.ToLower(date.Weekday().String())
 
 		return day, nil
 	})
@@ -104,7 +99,7 @@ func (s *Store) SummaryMonth(ctx context.Context, userId int64, month time.Month
 
 	for i := 1; i <= daysInMonth; i++ {
 		go func(i int) {
-			date := time.Date(year, month, i, 0, 0, 0, 0, time.UTC).Format(time.DateOnly)
+			date := time.Date(year, month, i, 0, 0, 0, 0, time.UTC)
 			summaryDay, err := s.SummaryDay(ctx, userId, date)
 			if err != nil {
 				results <- result{err: fmt.Errorf("could not get summary for date %s: %w", date, err)}
@@ -175,7 +170,7 @@ func (s *Store) getWeekdayHours(ctx context.Context, tx *sql.Tx, userId int64, w
 	return &hours, nil
 }
 
-func (s *Store) getDailySummary(ctx context.Context, tx *sql.Tx, userId int64, date string) (*SummaryDay, error) {
+func (s *Store) getDailySummary(ctx context.Context, tx *sql.Tx, userId int64, date time.Time) (*SummaryDay, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
 	defer cancel()
 
@@ -194,8 +189,9 @@ func (s *Store) getDailySummary(ctx context.Context, tx *sql.Tx, userId int64, d
 	`
 
 	timeEntries := []TimeEntry{}
+	dateString := date.Format(time.DateOnly)
 
-	rows, err := tx.QueryContext(ctx, stmt, userId, date)
+	rows, err := tx.QueryContext(ctx, stmt, userId, dateString)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +222,7 @@ func (s *Store) getDailySummary(ctx context.Context, tx *sql.Tx, userId int64, d
 	}
 
 	summary := &SummaryDay{
-		Date:        date,
+		Date:        dateString,
 		TotalHours:  totalHours,
 		TimeEntries: timeEntries,
 	}
