@@ -6,12 +6,17 @@ export interface Session {
 	updatedAt: string;
 }
 
+export interface Category {
+	id: number;
+	title: string;
+	rootTitle: string;
+}
 
 export interface RegisterTimeEntryInput {
 	categoryId: number;
 	date: string;
-	duration: string;
-	description: string;
+	duration: Duration;
+	description?: string;
 }
 
 export interface TimeEntry {
@@ -20,7 +25,7 @@ export interface TimeEntry {
 	category: string;
 	userId: number;
 	date: string;
-	duration: string;
+	duration: Duration;
 	description: string;
 }
 
