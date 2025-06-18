@@ -115,3 +115,61 @@ func (s *Store) Unfollow(ctx context.Context, id, userId int64) error {
 
 	return nil
 }
+
+func (s *Store) Tree(ctx context.Context, userId int64) ([]*CategoryTree, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		select 
+		  c.id,
+		  c.parent_id,
+		  c.title,
+		  c.is_retired,
+		  (select exists(select 1 from users_categories_link where user_id = ? and category_id = c.id)) as is_followed
+		from categories c
+		order by c.parent_id nulls first, c.id
+	`
+
+	rows, err := s.db.QueryContext(ctx, stmt, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	allCategories := make(map[int64]*CategoryTree)
+	var tree []*CategoryTree
+
+	for rows.Next() {
+		var category CategoryTree
+
+		if err := rows.Scan(
+			&category.Id,
+			&category.ParentId,
+			&category.Title,
+			&category.IsRetired,
+			&category.IsFollowed,
+		); err != nil {
+			return nil, err
+		}
+
+		category.Children = make([]*CategoryTree, 0)
+		allCategories[category.Id] = &category
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	for _, category := range allCategories {
+		if category.ParentId == nil {
+			tree = append(tree, category)
+		} else {
+			if parent, exists := allCategories[*category.ParentId]; exists {
+				parent.Children = append(parent.Children, category)
+			}
+		}
+	}
+
+	return tree, nil
+}
