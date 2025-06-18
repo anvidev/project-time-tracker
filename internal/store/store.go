@@ -50,5 +50,4 @@ type SessionStorer interface {
 type UserStorer interface {
 	Register(ctx context.Context, input users.RegisterUserInput) (*users.User, error)
 	GetByEmail(ctx context.Context, email string) (*users.User, error)
-	// SetHours(ctx context.Context, hours *users.Hours) error
 }
