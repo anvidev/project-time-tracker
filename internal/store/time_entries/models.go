@@ -11,7 +11,6 @@ type TimeEntry struct {
 	UserId      int64          `json:"userId"`
 	Date        string         `json:"date"` // yyyy-MM-dd (time.DateOnly)
 	Duration    types.Duration `json:"duration"`
-	MaxHours    types.Duration `json:"-"`
 	Description string         `json:"description"`
 }
 
