@@ -13,7 +13,7 @@ serve:
 run: build serve
 
 docker-dev:
-	@docker-compose -f docker-compose.dev.yaml up --build
+	@docker compose -f docker-compose.dev.yaml up --build
 
 migrate:
 	@read -p "Enter the sequence name: " SEQ; \

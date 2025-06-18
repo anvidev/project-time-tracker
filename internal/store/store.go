@@ -38,6 +38,7 @@ type CategoriesStorer interface {
 	Leafs(ctx context.Context, userId int64) ([]categories.Category, error)
 	Follow(ctx context.Context, id, userId int64) error
 	Unfollow(ctx context.Context, id, userId int64) error
+	Tree(ctx context.Context, userId int64) ([]*categories.CategoryTree, error)
 }
 
 type SessionStorer interface {

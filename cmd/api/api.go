@@ -34,6 +34,7 @@ func (api *api) handler() http.Handler {
 			r.Use(api.bearerAuthorization)
 			r.Route("/categories", func(r chi.Router) {
 				r.Get("/", api.entriesCategories)
+				r.Get("/all", api.entriesCategoriesTree)
 				r.Put("/{id}/follow", api.entriesFollowCategory)
 				r.Put("/{id}/unfollow", api.entriesUnfollowCategory)
 			})

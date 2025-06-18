@@ -40,6 +40,7 @@ The application will be available at `http://localhost:9090`
 
 ### Authed
  - `GET /v1/me/categories` - List followed categories
+ - `GET /v1/me/categories/all` - List all categories with follow state
  - `PUT /v1/me/categories/{id}/follow` - Follows category
  - `PUT /v1/me/categories/{id}/unfollow` - Unfollows category
  - `POST /v1/me/time_entries` - Make new time entry

@@ -32,6 +32,27 @@ func (api *api) entriesCategories(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (api *api) entriesCategoriesTree(w http.ResponseWriter, r *http.Request) {
+	userId, _ := getUserId(r.Context())
+
+	categoriesTree, err := api.store.Categories.Tree(r.Context(), userId)
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	response := map[string]any{
+		"categories": categoriesTree,
+	}
+
+	w.Header().Add("Cache-Control", "private, max-age=600")
+
+	if err := api.writeJSON(w, http.StatusOK, response); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (api *api) entriesRegisterTime(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
 
