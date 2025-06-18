@@ -2,12 +2,14 @@ package time_entries
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/anvidev/project-time-tracker/internal/database"
 	"github.com/anvidev/project-time-tracker/internal/types"
 )
 
@@ -58,56 +60,30 @@ func (s *Store) SummaryDay(ctx context.Context, userId int64, date string) (*Sum
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
 	defer cancel()
 
-	stmt := `
-		select 
-			te.id,
-			te.category_id,
-			te.user_id,
-			te.date,
-			te.duration,
-			te.description,
-			(select title from categories where id = te.category_id) as category
-		from time_entries te
-		where user_id = ? and date = ?
-		order by id desc
-	`
-
-	timeEntries := []TimeEntry{}
-
-	rows, err := s.db.QueryContext(ctx, stmt, userId, date)
+	parsedDate, err := time.Parse(time.DateOnly, date)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var e TimeEntry
-		rows.Scan(
-			&e.Id,
-			&e.CategoryId,
-			&e.UserId,
-			&e.Date,
-			&e.Duration,
-			&e.Description,
-			&e.Category,
-		)
-		timeEntries = append(timeEntries, e)
-	}
+	summary, err := database.WithTxResult(ctx, s.db, func(tx *sql.Tx) (*SummaryDay, error) {
+		weekdayHours, err := s.getWeekdayHours(ctx, tx, userId, parsedDate.Weekday())
+		if err != nil {
+			return nil, err
+		}
 
-	if err := rows.Err(); err != nil {
+		day, err := s.getDailySummary(ctx, tx, userId, date)
+		if err != nil {
+			return nil, err
+		}
+
+		day.MaxHours = *weekdayHours
+		day.Weekday = strings.ToLower(parsedDate.Weekday().String())
+
+		return day, nil
+	})
+
+	if err != nil {
 		return nil, err
-	}
-
-	var totalHours types.Duration
-
-	for _, entry := range timeEntries {
-		totalHours.Duration += entry.Duration.Duration
-	}
-
-	summary := &SummaryDay{
-		Date:        date,
-		TotalHours:  totalHours,
-		TimeEntries: timeEntries,
 	}
 
 	return summary, nil
@@ -182,4 +158,78 @@ func (s *Store) Delete(ctx context.Context, id, userId int64) error {
 	}
 
 	return nil
+}
+
+func (s *Store) getWeekdayHours(ctx context.Context, tx *sql.Tx, userId int64, weekday time.Weekday) (*types.Duration, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `select hours from users_hours where user_id = ? and weekday = ?`
+
+	var hours types.Duration
+
+	if err := tx.QueryRowContext(ctx, stmt, userId, int(weekday)).Scan(&hours); err != nil {
+		return nil, err
+	}
+
+	return &hours, nil
+}
+
+func (s *Store) getDailySummary(ctx context.Context, tx *sql.Tx, userId int64, date string) (*SummaryDay, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		select 
+			te.id,
+			te.category_id,
+			te.user_id,
+			te.date,
+			te.duration,
+			te.description,
+			(select title from categories where id = te.category_id) as category
+		from time_entries te
+		where user_id = ? and date = ?
+		order by id desc
+	`
+
+	timeEntries := []TimeEntry{}
+
+	rows, err := tx.QueryContext(ctx, stmt, userId, date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var e TimeEntry
+		rows.Scan(
+			&e.Id,
+			&e.CategoryId,
+			&e.UserId,
+			&e.Date,
+			&e.Duration,
+			&e.Description,
+			&e.Category,
+		)
+		timeEntries = append(timeEntries, e)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var totalHours types.Duration
+
+	for _, entry := range timeEntries {
+		totalHours.Duration += entry.Duration.Duration
+	}
+
+	summary := &SummaryDay{
+		Date:        date,
+		TotalHours:  totalHours,
+		TimeEntries: timeEntries,
+	}
+
+	return summary, nil
 }

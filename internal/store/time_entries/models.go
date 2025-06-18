@@ -11,11 +11,13 @@ type TimeEntry struct {
 	UserId      int64          `json:"userId"`
 	Date        string         `json:"date"` // yyyy-MM-dd (time.DateOnly)
 	Duration    types.Duration `json:"duration"`
+	MaxHours    types.Duration `json:"-"`
 	Description string         `json:"description"`
 }
 
 type SummaryDay struct {
 	Date        string         `json:"date"`
+	Weekday     string         `json:"weekday"`
 	TotalHours  types.Duration `json:"totalHours"`
 	MaxHours    types.Duration `json:"maxHours"`
 	TimeEntries []TimeEntry    `json:"timeEntries"`

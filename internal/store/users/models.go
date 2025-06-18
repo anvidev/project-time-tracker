@@ -3,6 +3,7 @@ package users
 import (
 	"fmt"
 
+	"github.com/anvidev/project-time-tracker/internal/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,6 +40,17 @@ func (p *Password) Matches(plaintext string) bool {
 		return false
 	}
 	return bcrypt.CompareHashAndPassword(p.hash, []byte(plaintext)) == nil
+}
+
+type Hours struct {
+	UserId    int64          `json:"userId"`
+	Monday    types.Duration `json:"monday"`
+	Tuesday   types.Duration `json:"tuesday"`
+	Wednesday types.Duration `json:"wednesday"`
+	Thursday  types.Duration `json:"thursday"`
+	Friday    types.Duration `json:"friday"`
+	Saturday  types.Duration `json:"saturday"`
+	Sunday    types.Duration `json:"sunday"`
 }
 
 type RegisterUserInput struct {

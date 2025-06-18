@@ -27,6 +27,22 @@ func (api *api) authRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// defaultHours := users.Hours{
+	// 	UserId:    user.Id,
+	// 	Monday:    types.Duration{Duration: time.Duration(60*time.Minute*7 + 30*time.Minute)},
+	// 	Tuesday:   types.Duration{Duration: time.Duration(60*time.Minute*7 + 30*time.Minute)},
+	// 	Wednesday: types.Duration{Duration: time.Duration(60*time.Minute*7 + 30*time.Minute)},
+	// 	Thursday:  types.Duration{Duration: time.Duration(60*time.Minute*7 + 30*time.Minute)},
+	// 	Friday:    types.Duration{Duration: time.Duration(60 * time.Minute * 7)},
+	// 	Saturday:  types.Duration{},
+	// 	Sunday:    types.Duration{},
+	// }
+
+	// if err := api.store.Users.SetHours(r.Context(), &defaultHours); err != nil {
+	// 	api.internalServerError(w, r, err)
+	// 	return
+	// }
+
 	response := map[string]any{
 		"user": user,
 	}
