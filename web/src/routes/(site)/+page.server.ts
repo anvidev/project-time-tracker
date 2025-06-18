@@ -1,0 +1,52 @@
+import { z } from "zod";
+import type { Actions, PageServerLoad } from "./$types";
+import { fail, message, superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import { error } from "@sveltejs/kit";
+import { Hour } from "$lib/utils";
+import { formatISO } from "date-fns";
+
+const schema = z.object({
+	categoryId: z.coerce.number(),
+	date: z.string(),
+	durationHours: z.coerce.number(),
+	description: z.string().optional(),
+})
+
+export const load: PageServerLoad = async ({locals, cookies}) => {
+	const defaultValues: z.infer<typeof schema> = {
+		date: formatISO(new Date()),
+		categoryId: -1,
+		durationHours: 0,
+	}
+	const form = await superValidate(defaultValues, zod(schema));
+
+	const categoryRes = await locals.apiService.getUserCategories(cookies.get('authToken') ?? "")
+	if (!categoryRes.ok) {
+		error(500, categoryRes.error)
+	}
+
+	return { form, categories: categoryRes.data};
+}
+
+export const actions: Actions = {
+	default: async ({ request, locals, cookies }) => {
+		const form = await superValidate(request, zod(schema));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const res = await locals.apiService.createTimeEntry({
+			date: form.data.date,
+			duration: form.data.durationHours * Hour,
+			categoryId: form.data.categoryId,
+			description: form.data.description,
+		}, cookies.get('authToken')!)
+
+		if (res.ok) {
+			return message(form, "Created Time Entry")
+		} 
+
+		return message(form, res.error, {status: 500})
+	},
+}
