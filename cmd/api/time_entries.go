@@ -82,8 +82,7 @@ func (api *api) entriesRegisterTime(w http.ResponseWriter, r *http.Request) {
 func (api *api) entriesSummaryDay(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
 
-	date := r.PathValue("date")
-	_, err := time.Parse(time.DateOnly, date)
+	date, err := time.Parse(time.DateOnly, r.PathValue("date"))
 	if err != nil {
 		api.badRequestError(w, r, err)
 		return

@@ -16,6 +16,7 @@ type TimeEntry struct {
 
 type SummaryDay struct {
 	Date        string         `json:"date"`
+	Weekday     string         `json:"weekday"`
 	TotalHours  types.Duration `json:"totalHours"`
 	MaxHours    types.Duration `json:"maxHours"`
 	TimeEntries []TimeEntry    `json:"timeEntries"`
