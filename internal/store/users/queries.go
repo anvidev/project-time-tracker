@@ -60,7 +60,7 @@ func (s *Store) GetByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
 
 	stmt := `
-		select rowid, name, email, hash, is_active, role, created_at
+		select id, name, email, hash, is_active, role, created_at
 		from users
 		where email = ?
 	`
