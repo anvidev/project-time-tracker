@@ -1,4 +1,5 @@
-import type { Category, RegisterTimeEntryInput, Session, TimeEntry } from './types';
+import { format } from 'date-fns';
+import type { Category, Duration, RegisterTimeEntryInput, Session, SummaryDay, SummaryDayDTO, TimeEntry } from './types';
 import { parseDuration } from './utils';
 
 type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -138,6 +139,44 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 				ok: false,
 				error: `${body.code}: ${body.error}`
 			};
-		}
+		},
+		getSummaryForDate: async function(date: Date | string, authToken: string): Promise<ServiceResponse<SummaryDay>> {
+			let dateStr: string
+			if (date instanceof Date) {
+				dateStr = format(date, 'yyyy-MM-dd')
+			} else {
+				dateStr = date
+			}
+
+			const res = await fetch(`${baseUrl}/v1/me/time_entries/day/${dateStr}`, {
+				headers: {
+					Authorization: `Bearer ${authToken}`
+				},
+			})
+
+			if (res.ok) {
+				return {
+					ok: true,
+					data: await res.json()
+					.then(json => json.summary as SummaryDayDTO)
+					.then(summary => ({
+						date: summary.date,
+						totalHours: parseDuration(summary.totalHours) ?? -1,
+						maxHours: parseDuration(summary.maxHours) ?? -1,
+						timeEntries: summary.timeEntries.map(e => ({ ...e, duration: parseDuration(e.duration) ?? -1 }))
+					})),
+				}
+			}
+
+			const body: {
+				error: string;
+				code: string;
+			} = await res.json();
+
+			return {
+				ok: false,
+				error: `${body.code}: ${body.error}`
+			};
+		},
 	};
 };
