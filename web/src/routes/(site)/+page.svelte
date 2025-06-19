@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { superForm } from 'sveltekit-superforms';
+	import SuperDebug, { superForm } from 'sveltekit-superforms';
 	import type { PageProps } from './$types';
 	import { Label } from '$lib/components/ui/label';
 	import DatePicker from '$lib/components/ui/button/date-picker/DatePicker.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { fromDate, getLocalTimeZone, type DateValue } from '@internationalized/date';
-	import { format, formatISO, toDate } from 'date-fns';
+	import { format, toDate } from 'date-fns';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import type { Category } from '$lib/types';
 	import {
@@ -19,9 +19,7 @@
 
 	let { data }: PageProps = $props();
 
-	const { form, errors, message } = superForm(data.form);
-
-	console.log({$errors, $message})
+	const { form, constraints, enhance } = superForm(data.form, {dataType: "json"});
 
 	let dateValue = $derived(
 		$form.date ? fromDate(toDate($form.date), getLocalTimeZone()) : undefined
@@ -46,14 +44,18 @@
 
 	const onValueChange = (v: DateValue | undefined) => {
 		if (v) {
-			$form.date = formatISO(v.toDate(getLocalTimeZone()));
+			$form.date = format(v.toDate(getLocalTimeZone()), "yyyy-MM-dd");
 		} else {
 			$form.date = '';
 		}
 	};
 </script>
 
-<form method="POST" class="flex w-[350px] flex-col gap-4 rounded border p-4 shadow-sm">
+<form 
+	method="POST" 
+	class="flex w-[350px] flex-col gap-4 rounded border p-4 shadow-sm"
+	use:enhance
+>
 	<div class="grid gap-1">
 		<Label class="gap-[2px]">Dato<span class="text-red-700">*</span></Label>
 		<DatePicker value={dateValue} {onValueChange} placeholder="Vælg en dato" class="w-full" />
@@ -93,6 +95,7 @@
 			type="number"
 			step="0.01"
 			placeholder="Indtast antal timer"
+			{...$constraints.durationHours}
 		/>
 	</div>
 
@@ -102,8 +105,11 @@
 			name="description"
 			bind:value={$form.description}
 			placeholder="Indtast valgfri beskrivelse"
+			{...$constraints.description}
 		/>
 	</div>
 
 	<Button type="submit" class="mt-2">Opret</Button>
 </form>
+
+<SuperDebug data={$form} />
