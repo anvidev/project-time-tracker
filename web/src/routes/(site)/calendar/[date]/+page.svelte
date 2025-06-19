@@ -2,15 +2,8 @@
 	import { superForm } from 'sveltekit-superforms';
 	import type { PageProps } from './$types';
 	import { Label } from '$lib/components/ui/label';
-	import DatePicker from '$lib/components/ui/button/date-picker/DatePicker.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		DateFormatter,
-		fromDate,
-		getLocalTimeZone,
-		type DateValue
-	} from '@internationalized/date';
-	import { format, toDate } from 'date-fns';
+	import { DateFormatter } from '@internationalized/date';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import type { Category, TimeEntry } from '$lib/types';
 	import {
@@ -34,10 +27,6 @@
 	let { data }: PageProps = $props();
 
 	const { form, constraints, enhance } = superForm(data.form, { dataType: 'json' });
-
-	let dateValue = $derived(
-		$form.date ? fromDate(toDate($form.date), getLocalTimeZone()) : undefined
-	);
 
 	let categoryMap = $derived.by(() => {
 		const res: Record<string, Category[]> = {};
@@ -74,14 +63,6 @@
 	const categoryTriggerContent = $derived(
 		data.categories.find((c) => c.id == $form.categoryId)?.title ?? 'Vælg en kategori'
 	);
-
-	const onValueChange = (v: DateValue | undefined) => {
-		if (v) {
-			$form.date = format(v.toDate(getLocalTimeZone()), 'yyyy-MM-dd');
-		} else {
-			$form.date = '';
-		}
-	};
 
 	const remainingHours = $derived(
 		Math.max((daySummary.maxHours - daySummary.totalHours) / Hour, 0)
@@ -155,7 +136,7 @@
 				</div>
 				<div class="flex flex-col items-center justify-center">
 					<p class="text-lg font-semibold">
-						{daySummary.totalHours / Hour / daySummary.timeEntries.length} timer
+						{daySummary.totalHours / Hour / daySummary.timeEntries.length}t
 					</p>
 					<p class="text-muted-foreground text-sm">Gns / Registrering</p>
 				</div>
@@ -164,13 +145,8 @@
 	</Card>
 
 	<Card>
-		<CardContent>
-			<form method="POST" class="flex flex-col gap-4" use:enhance>
-				<div class="grid gap-1">
-					<Label class="gap-[2px]">Dato<span class="text-red-700">*</span></Label>
-					<DatePicker value={dateValue} {onValueChange} placeholder="Vælg en dato" class="w-full" />
-				</div>
-
+		<CardContent class="h-full">
+			<form method="POST" class="flex h-full flex-col justify-evenly gap-4" use:enhance>
 				<div class="grid gap-1">
 					<Label class="gap-[2px]" for="category">Kategori<span class="text-red-700">*</span></Label
 					>
@@ -247,7 +223,9 @@
 						</p>
 					</div>
 					<div>
-						<Badge class="bg-background" variant="outline">{entry.duration / Hour}T</Badge>
+						<Badge class="bg-background" variant="outline">
+							{(entry.duration / Hour).toFixed(2)}t
+						</Badge>
 					</div>
 				</div>
 			{/each}

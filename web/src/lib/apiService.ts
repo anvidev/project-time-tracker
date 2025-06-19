@@ -5,6 +5,8 @@ import type {
 	Session,
 	SummaryDay,
 	SummaryDayDTO,
+	SummaryMonth,
+	SummaryMonthDTO,
 	TimeEntry
 } from './types';
 import { Hour, parseDuration } from './utils';
@@ -188,6 +190,55 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 								}))
 							};
 						})
+				};
+			}
+
+			const body: {
+				error: string;
+				code: string;
+			} = await res.json();
+
+			return {
+				ok: false,
+				error: `${body.code}: ${body.error}`
+			};
+		},
+		getSummaryForMonth: async function(
+			monthStr: string,
+			authToken: string
+		): Promise<ServiceResponse<SummaryMonth>> {
+			const res = await fetch(`${baseUrl}/v1/me/time_entries/month/${monthStr}`, {
+				headers: {
+					Authorization: `Bearer ${authToken}`
+				}
+			});
+
+			if (res.ok) {
+				return {
+					ok: true,
+					data: await res
+						.json()
+						.then((json) => json.summary as SummaryMonthDTO)
+						.then((summary) => ({
+							month: summary.month,
+							totalHours: parseDuration(summary.totalHours) ?? -1,
+							maxHours: parseDuration(summary.maxHours) ?? -1,
+							days: summary.days.map((day) => {
+								let maxHours = parseDuration(day.maxHours) ?? 0;
+								if (maxHours == 0) {
+									maxHours = 7.5 * Hour;
+								}
+								return {
+									date: day.date,
+									totalHours: parseDuration(day.totalHours) ?? -1,
+									maxHours,
+									timeEntries: day.timeEntries.map((e) => ({
+										...e,
+										duration: parseDuration(e.duration) ?? -1
+									}))
+								};
+							})
+						}))
 				};
 			}
 
