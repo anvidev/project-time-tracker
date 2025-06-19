@@ -33,6 +33,20 @@ export interface SummaryDayDTO {
 	timeEntries: TimeEntryDTO[];
 }
 
+export interface SummaryMonth {
+	month: string;
+	totalHours: Duration;
+	maxHours: Duration;
+	days: SummaryDay[];
+}
+
+export interface SummaryMonthDTO {
+	month: string;
+	totalHours: string;
+	maxHours: string;
+	days: SummaryDayDTO[];
+}
+
 export interface TimeEntry {
 	id: number;
 	categoryId: number;
@@ -53,4 +67,4 @@ export interface TimeEntryDTO {
 	description: string;
 }
 
-export type Duration = number
+export type Duration = number;
