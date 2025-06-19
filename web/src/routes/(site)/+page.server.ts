@@ -4,7 +4,7 @@ import { fail, message, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
 import { error } from "@sveltejs/kit";
 import { Hour } from "$lib/utils";
-import { formatISO } from "date-fns";
+import { format } from "date-fns";
 
 const schema = z.object({
 	categoryId: z.coerce.number(),
@@ -15,7 +15,7 @@ const schema = z.object({
 
 export const load: PageServerLoad = async ({locals, cookies}) => {
 	const defaultValues: z.infer<typeof schema> = {
-		date: formatISO(new Date()),
+		date: format(new Date(), "yyyy-MM-dd"),
 		categoryId: -1,
 		durationHours: 0,
 	}
@@ -36,12 +36,14 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		const res = await locals.apiService.createTimeEntry({
+		const data = {
 			date: form.data.date,
 			duration: form.data.durationHours * Hour,
 			categoryId: form.data.categoryId,
 			description: form.data.description,
-		}, cookies.get('authToken')!)
+		}
+
+		const res = await locals.apiService.createTimeEntry(data, cookies.get('authToken')!)
 
 		if (res.ok) {
 			return message(form, "Created Time Entry")
