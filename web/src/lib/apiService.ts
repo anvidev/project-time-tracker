@@ -1,6 +1,13 @@
 import { format } from 'date-fns';
-import type { Category, Duration, RegisterTimeEntryInput, Session, SummaryDay, SummaryDayDTO, TimeEntry } from './types';
-import { parseDuration } from './utils';
+import type {
+	Category,
+	RegisterTimeEntryInput,
+	Session,
+	SummaryDay,
+	SummaryDayDTO,
+	TimeEntry
+} from './types';
+import { Hour, parseDuration } from './utils';
 
 type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -79,14 +86,14 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 			const res = await fetch(`${baseUrl}/v1/me/categories`, {
 				headers: {
 					Authorization: `Bearer ${authToken}`
-				},
-			})
+				}
+			});
 
 			if (res.ok) {
 				return {
 					ok: true,
 					data: (await res.json()).categories
-				}
+				};
 			}
 
 			if (res.headers.get('content-type')?.includes('application/json')) {
@@ -100,34 +107,37 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 					error: `${body.code}: ${body.error}`
 				};
 			} else {
-				const body = await res.text()
+				const body = await res.text();
 
-				console.error(body)
+				console.error(body);
 				return {
 					ok: false,
-					error: body,
-				}
+					error: body
+				};
 			}
 		},
 
 		// TIME_ENTRIES
-		createTimeEntry: async function(data: RegisterTimeEntryInput, authToken: string): Promise<ServiceResponse<TimeEntry>> {
+		createTimeEntry: async function(
+			data: RegisterTimeEntryInput,
+			authToken: string
+		): Promise<ServiceResponse<TimeEntry>> {
 			const res = await fetch(`${baseUrl}/v1/me/time_entries`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${authToken}`
 				},
-				body: JSON.stringify(data),
-			})
+				body: JSON.stringify(data)
+			});
 
 			if (res.ok) {
 				return {
 					ok: true,
-					data: await res.json().then(json => ({
+					data: await res.json().then((json) => ({
 						...json.timeEntry,
-						duration: parseDuration(json.timeEntry.duration),
-					})),
-				}
+						duration: parseDuration(json.timeEntry.duration)
+					}))
+				};
 			}
 
 			const body: {
@@ -140,32 +150,45 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 				error: `${body.code}: ${body.error}`
 			};
 		},
-		getSummaryForDate: async function(date: Date | string, authToken: string): Promise<ServiceResponse<SummaryDay>> {
-			let dateStr: string
+		getSummaryForDate: async function(
+			date: Date | string,
+			authToken: string
+		): Promise<ServiceResponse<SummaryDay>> {
+			let dateStr: string;
 			if (date instanceof Date) {
-				dateStr = format(date, 'yyyy-MM-dd')
+				dateStr = format(date, 'yyyy-MM-dd');
 			} else {
-				dateStr = date
+				dateStr = date;
 			}
 
 			const res = await fetch(`${baseUrl}/v1/me/time_entries/day/${dateStr}`, {
 				headers: {
 					Authorization: `Bearer ${authToken}`
-				},
-			})
+				}
+			});
 
 			if (res.ok) {
 				return {
 					ok: true,
-					data: await res.json()
-					.then(json => json.summary as SummaryDayDTO)
-					.then(summary => ({
-						date: summary.date,
-						totalHours: parseDuration(summary.totalHours) ?? -1,
-						maxHours: parseDuration(summary.maxHours) ?? -1,
-						timeEntries: summary.timeEntries.map(e => ({ ...e, duration: parseDuration(e.duration) ?? -1 }))
-					})),
-				}
+					data: await res
+						.json()
+						.then((json) => json.summary as SummaryDayDTO)
+						.then((summary) => {
+							let maxHours = parseDuration(summary.maxHours) ?? 0;
+							if (maxHours == 0) {
+								maxHours = 7.5 * Hour;
+							}
+							return {
+								date: summary.date,
+								totalHours: parseDuration(summary.totalHours) ?? -1,
+								maxHours,
+								timeEntries: summary.timeEntries.map((e) => ({
+									...e,
+									duration: parseDuration(e.duration) ?? -1
+								}))
+							};
+						})
+				};
 			}
 
 			const body: {
@@ -177,6 +200,6 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 				ok: false,
 				error: `${body.code}: ${body.error}`
 			};
-		},
+		}
 	};
 };
