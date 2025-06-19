@@ -29,6 +29,6 @@ export const actions: Actions = {
 
 		cookies.set('authToken', loginRes.data.token, { path: '/' });
 
-		redirect(303, '/');
+		redirect(303, '/calendar');
 	}
 };
