@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/anvidev/project-time-tracker/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-co-op/gocron/v2"
 )
 
 func (api *api) handler() http.Handler {
@@ -74,6 +76,24 @@ func (api *api) Run() error {
 		Handler:      mux,
 	}
 
+	localTz, err := time.LoadLocation("Europe/Berlin")
+	if err != nil {
+		return err
+	}
+	cronScheduler, err := gocron.NewScheduler(gocron.WithLocation(localTz))
+	if err != nil {
+		return err
+	}
+
+	_, err = cronScheduler.NewJob(gocron.DailyJob(1, gocron.NewAtTimes(gocron.NewAtTime(13, 29, 0))), gocron.NewTask(func() {
+		fmt.Println("cron job ran")
+	}))
+	if err != nil {
+		return err
+	}
+
+	cronScheduler.Start()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -89,6 +109,8 @@ func (api *api) Run() error {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	_ = cronScheduler.Shutdown()
 
 	return srv.Shutdown(shutdownCtx)
 }
