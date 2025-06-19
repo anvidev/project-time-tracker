@@ -13,7 +13,7 @@ const schema = z.object({
 	description: z.string().optional(),
 })
 
-export const load: PageServerLoad = async ({locals, cookies}) => {
+export const load: PageServerLoad = async ({ locals }) => {
 	const defaultValues: z.infer<typeof schema> = {
 		date: format(new Date(), "yyyy-MM-dd"),
 		categoryId: -1,
@@ -21,16 +21,21 @@ export const load: PageServerLoad = async ({locals, cookies}) => {
 	}
 	const form = await superValidate(defaultValues, zod(schema));
 
-	const categoryRes = await locals.apiService.getUserCategories(cookies.get('authToken') ?? "")
+	const daySummaryRes = await locals.apiService.getSummaryForDate(new Date(), locals.authToken)
+	if (!daySummaryRes.ok) {
+		error(500, daySummaryRes.error)
+	}
+
+	const categoryRes = await locals.apiService.getUserCategories(locals.authToken)
 	if (!categoryRes.ok) {
 		error(500, categoryRes.error)
 	}
 
-	return { form, categories: categoryRes.data};
+	return { form, categories: categoryRes.data, daySummary: daySummaryRes.data };
 }
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
+	default: async ({ request, locals }) => {
 		const form = await superValidate(request, zod(schema));
 		if (!form.valid) {
 			return fail(400, { form });
@@ -43,7 +48,7 @@ export const actions: Actions = {
 			description: form.data.description,
 		}
 
-		const res = await locals.apiService.createTimeEntry(data, cookies.get('authToken')!)
+		const res = await locals.apiService.createTimeEntry(data, locals.authToken)
 
 		if (res.ok) {
 			return message(form, "Created Time Entry")

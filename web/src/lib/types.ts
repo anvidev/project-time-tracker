@@ -19,6 +19,20 @@ export interface RegisterTimeEntryInput {
 	description?: string;
 }
 
+export interface SummaryDay {
+	date: string;
+	totalHours: Duration;
+	maxHours: Duration;
+	timeEntries: TimeEntry[];
+}
+
+export interface SummaryDayDTO {
+	date: string;
+	totalHours: string;
+	maxHours: string;
+	timeEntries: TimeEntryDTO[];
+}
+
 export interface TimeEntry {
 	id: number;
 	categoryId: number;
@@ -26,6 +40,16 @@ export interface TimeEntry {
 	userId: number;
 	date: string;
 	duration: Duration;
+	description: string;
+}
+
+export interface TimeEntryDTO {
+	id: number;
+	categoryId: number;
+	category: string;
+	userId: number;
+	date: string;
+	duration: string;
 	description: string;
 }
 

@@ -48,7 +48,7 @@ export function parseDuration(s: string): Duration | undefined {
 		return 0
 	}
 	if (s == "") {
-		console.error(`parseDuration: invalid duration '${orig}'`)
+		console.error(`parseDuration: invalid duration '${orig}'. Empty string not allowed.`)
 		return undefined
 	}
 
@@ -58,15 +58,17 @@ export function parseDuration(s: string): Duration | undefined {
 		let scale: number = 1 // value = v + f/scale
 
 		// The next character must be [0-9.]
-		if (!(s[0] == '.' || '0' <= s[0] && s[0] <= '9')) {
-			console.error(`parseDuration: invalid duration '${orig}'`)
+		if (!(s[0] == '.' || '0'.charCodeAt(0) <= s[0].charCodeAt(0) && s[0].charCodeAt(0) <= '9'.charCodeAt(0))) {
+			const pos = orig.length - s.length
+			console.error(`parseDuration: invalid duration '${orig}'. Expected number, got '${orig[pos]}'`)
 			return undefined
 		}
 		// Consume [0-9]*
 		const pl = s.length
 		const leading = leadingInt(s)
 		if (leading == undefined) {
-			console.error(`parseDuration: invalid duration '${orig}'`)
+			const pos = orig.length - s.length
+			console.error(`parseDuration: invalid duration '${orig}'. Invalid leading at ${pos}`)
 			return undefined
 		}
 		v = leading.x
@@ -85,7 +87,8 @@ export function parseDuration(s: string): Duration | undefined {
 			post = pl != s.length
 		}
 		if (!pre && !post) {
-			console.error(`parseDuration: invalid duration '${orig}'`)
+			const pos = orig.length - s.length
+			console.error(`parseDuration: invalid duration '${orig}'. No pre/post at ${pos}`)
 			return undefined
 		}
 
@@ -98,35 +101,40 @@ export function parseDuration(s: string): Duration | undefined {
 			}
 		}
 		if (i == 0) {
-			console.error(`parseDuration: missing unit in duration '${orig}'`)
+			const pos = orig.length - s.length
+			console.error(`parseDuration: missing unit in duration '${orig}' at ${pos}`)
 			return undefined
 		}
 		const u = s.slice(0,i)
 		s = s.slice(i)
 		const unit = unitMap.get(u)
 		if (unit == undefined) {
-			console.error(`parseDuration: unknown unit '${u}' in duration '${orig}'`)
+			const pos = orig.length - s.length
+			console.error(`parseDuration: unknown unit '${u}' in duration '${orig}' at ${pos}`)
 			return undefined
 		}
-		if (v > 1<<63/unit) {
-			console.error(`parseDuration: invalid duration '${orig}'`)
-			return undefined
-		}
+		// if (v > 1<<63/unit) {
+		// 	const pos = orig.length - s.length
+		// 	console.error(`parseDuration: invalid duration '${orig}' at ${pos}`)
+		// 	return undefined
+		// }
 		v *= unit
 		if (f > 0) {
 			// float64 is needed to be nanosecond accurate for fractions of hours.
 			// v >= 0 && (f*unit/scale) <= 3.6e+12 (ns/h, h is the largest unit)
 			v += f * (unit / scale)
-			if (v > 1<<31) {
-				console.error(`parseDuration: invalid duration '${orig}'`)
-				return undefined
-			}
+			// if (v > 1<<31) {
+			// 	const pos = orig.length - s.length
+			// 	console.error(`parseDuration: invalid duration '${orig}' at ${pos} (v > 1<<31)`)
+			// 	return undefined
+			// }
 		}
 		d += v
-		if (d > 1<<31) {
-			console.error(`parseDuration: invalid duration '${orig}'`)
-			return undefined
-		}
+		// if (d > 1<<31) {
+		// 	const pos = orig.length - s.length
+		// 	console.error(`parseDuration: invalid duration '${orig}' at ${pos} (d > 1<<31)`)
+		// 	return undefined
+		// }
 	}
 	
 	return d
@@ -142,15 +150,17 @@ function leadingInt(s: string): {x: number, rem: string} | undefined {
 		if (c < '0' || c > '9') {
 			break
 		}
-		if (x > 1<<63/10) {
-			// overflow
-			return 
-		}
+		// if (x > 1<<63/10) {
+		// 	// overflow
+		// 	console.error("x > 1<<63/10")
+		// 	return 
+		// }
 		x = x*10 + (c.charCodeAt(0) - '0'.charCodeAt(0))
-		if (x > 1<<31) {
-			// overflow
-			return
-		}
+		// if (x > 1<<63) {
+		// 	// overflow
+		// 	console.error("x > 1<<31")
+		// 	return
+		// }
 	}
 	return {x, rem: s.slice(i)}
 }

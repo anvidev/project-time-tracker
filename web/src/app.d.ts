@@ -6,6 +6,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			apiService: ReturnType<typeof ApiServiceFactory>;
+			authToken: string;
 		}
 		// interface PageData {}
 		// interface PageState {}
