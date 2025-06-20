@@ -152,6 +152,34 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 				error: `${body.code}: ${body.error}`
 			};
 		},
+		deleteTimeEntry: async function(
+			id: number,
+			authToken: string,
+		): Promise<ServiceResponse<undefined>> {
+			const res = await fetch(`${baseUrl}/v1/me/time_entries/${id}`, {
+				method: 'DELETE',
+				headers: {
+					Authorization: `Bearer ${authToken}`
+				}
+			});
+
+			if (res.ok) {
+				return {
+					ok: true,
+					data: undefined,
+				}
+			}
+
+			const body: {
+				error: string;
+				code: string;
+			} = await res.json();
+
+			return {
+				ok: false,
+				error: `${body.code}: ${body.error}`
+			};
+		},
 		getSummaryForDate: async function(
 			date: Date | string,
 			authToken: string
