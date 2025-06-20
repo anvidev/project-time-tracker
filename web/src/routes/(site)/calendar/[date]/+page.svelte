@@ -37,12 +37,12 @@
 	)
 </script>
 
-<div class="flex w-full items-center p-4 border rounded-xl mb-6 gap-4">
-	<Button href="/calendar">
+<div class="relative flex w-full items-center h-[70px] p-4 border rounded-xl mb-6 gap-4 text-center">
+	<Button class="absolute left-4 top-4" href="/calendar" variant="link">
 		<ArrowLeft />
 		Tilbage
 	</Button>
-	<p class="font-semibold text-xl tracking-tight">Tidsregistrering d. {formattedDate}</p>
+	<p class="font-semibold text-xl tracking-tight w-full">Tidsregistrering d. {formattedDate}</p>
 </div>
 
 <div class="grid w-full grid-cols-2 gap-6">
