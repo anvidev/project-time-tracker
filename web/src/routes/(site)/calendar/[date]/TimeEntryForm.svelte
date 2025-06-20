@@ -8,20 +8,18 @@
 		SelectLabel,
 		SelectTrigger
 	} from '$lib/components/ui/select';
-	import {
-		Card,
-		CardContent,
-	} from '$lib/components/ui/card';
+	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import type { Category } from '$lib/types';
+	import { LoaderCircle } from '@lucide/svelte';
 
 	const {
 		formData,
-		categories,
+		categories
 	}: {
-		categories: Category[]
+		categories: Category[];
 		formData: SuperValidated<
 			{
 				categoryId: number;
@@ -39,7 +37,11 @@
 		>;
 	} = $props();
 
-	const { form, constraints, enhance } = superForm(formData, { dataType: 'json' });
+	const { form, constraints, enhance, delayed } = superForm(formData, {
+		dataType: 'json',
+		delayMs: 150,
+		timeoutMs: 8000,
+	});
 
 	let categoryMap = $derived.by(() => {
 		const res: Record<string, Category[]> = {};
@@ -58,10 +60,15 @@
 	);
 </script>
 
-	<Card>
-		<CardContent class="h-full">
-			<form method="POST" action="?/createTimeEntry" class="flex h-full flex-col justify-between gap-4" use:enhance>
-				<div class="flex flex-col gap-4">
+<Card>
+	<CardContent class="h-full">
+		<form
+			method="POST"
+			action="?/createTimeEntry"
+			class="flex h-full flex-col justify-between gap-4"
+			use:enhance
+		>
+			<div class="flex flex-col gap-4">
 				<div class="grid gap-1">
 					<Label class="gap-[2px]" for="category">Kategori<span class="text-red-700">*</span></Label
 					>
@@ -112,7 +119,10 @@
 				</div>
 			</div>
 
-				<Button type="submit" class="mt-2 cursor-pointer">Opret</Button>
-			</form>
-		</CardContent>
-	</Card>
+			<Button type="submit" class="mt-2 cursor-pointer">
+				Opret
+				{#if $delayed} <LoaderCircle class="animate-spin" /> {/if}
+			</Button>
+		</form>
+	</CardContent>
+</Card>
