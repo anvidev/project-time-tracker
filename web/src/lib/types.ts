@@ -33,15 +33,17 @@ export interface SummaryDayDTO {
 	timeEntries: TimeEntryDTO[];
 }
 
+export type Month = 'january' | 'february' | 'march' | 'april' | 'may' | 'june' | 'july' | 'august' | 'september' | 'october' | 'november' | 'december'
+
 export interface SummaryMonth {
-	month: string;
+	month: Month;
 	totalHours: Duration;
 	maxHours: Duration;
 	days: SummaryDay[];
 }
 
 export interface SummaryMonthDTO {
-	month: string;
+	month: Month;
 	totalHours: string;
 	maxHours: string;
 	days: SummaryDayDTO[];
@@ -68,3 +70,42 @@ export interface TimeEntryDTO {
 }
 
 export type Duration = number;
+
+export interface Calendar {
+	days: Day[]
+}
+
+export interface Day {
+	year: number
+	month: number
+	day: number
+	julianDay: number
+	date: string
+	formattedDate: string
+	dayInYear: number
+	dayName: string
+	altNames: string
+	wiki_link: string
+	weekday: string
+	weekNumber: string
+	holliday: boolean
+	moonSymbol: string
+	events: Event[]
+}
+
+export interface Event {
+	id: number
+	danishShort: string
+	danishLong: string
+	latinShort: string
+	latinLong: string
+	merkedage: boolean
+	minimal: boolean
+	kirkeaar: boolean
+	holliday: boolean
+	liturgiskFarve: string
+	vises: string
+	visesHellig: string
+	definition: string
+	wikiLink: string
+}
