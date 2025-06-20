@@ -6,20 +6,24 @@ import { error } from '@sveltejs/kit';
 import { Hour } from '$lib/utils';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 
-const schema = z.object({
+const createTimeEntrySchema = z.object({
 	categoryId: z.coerce.number(),
 	date: z.string(),
 	durationHours: z.coerce.number(),
 	description: z.string().optional()
 });
 
+const deleteTimeEntrySchema = z.object({
+	id: z.coerce.number(),
+});
+
 export const load: PageServerLoad = async ({ locals, params }) => {
-	const defaultValues: z.infer<typeof schema> = {
+	const defaultValues: z.infer<typeof createTimeEntrySchema> = {
 		date: params.date,
 		categoryId: -1,
 		durationHours: 0
 	};
-	const form = await superValidate(defaultValues, zod(schema));
+	const form = await superValidate(defaultValues, zod(createTimeEntrySchema));
 
 	const daySummaryRes = await locals.apiService.getSummaryForDate(
 		parseDate(params.date).toDate(getLocalTimeZone()),
@@ -38,8 +42,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals }) => {
-		const form = await superValidate(request, zod(schema));
+	createTimeEntry: async ({ request, locals }) => {
+		const form = await superValidate(request, zod(createTimeEntrySchema));
 		if (!form.valid) {
 			return fail(400, { form });
 		}
@@ -55,6 +59,21 @@ export const actions: Actions = {
 
 		if (res.ok) {
 			return message(form, 'Created Time Entry');
+		}
+
+		return message(form, res.error, { status: 500 });
+	},
+	deleteTimeEntry: async ({ request, locals }) => {
+		const form = await superValidate(request, zod(deleteTimeEntrySchema));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const entryId = form.data.id
+		const res = await locals.apiService.deleteTimeEntry(entryId, locals.authToken);
+
+		if (res.ok) {
+			return message(form, 'Deleted Time Entry');
 		}
 
 		return message(form, res.error, { status: 500 });

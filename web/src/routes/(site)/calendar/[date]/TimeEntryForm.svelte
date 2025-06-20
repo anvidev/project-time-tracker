@@ -60,7 +60,7 @@
 
 	<Card>
 		<CardContent class="h-full">
-			<form method="POST" class="flex h-full flex-col justify-between gap-4" use:enhance>
+			<form method="POST" action="?/createTimeEntry" class="flex h-full flex-col justify-between gap-4" use:enhance>
 				<div class="flex flex-col gap-4">
 				<div class="grid gap-1">
 					<Label class="gap-[2px]" for="category">Kategori<span class="text-red-700">*</span></Label
@@ -112,7 +112,7 @@
 				</div>
 			</div>
 
-				<Button type="submit" class="mt-2">Opret</Button>
+				<Button type="submit" class="mt-2 cursor-pointer">Opret</Button>
 			</form>
 		</CardContent>
 	</Card>
