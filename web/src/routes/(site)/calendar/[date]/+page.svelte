@@ -1,19 +1,8 @@
 <script lang="ts">
-	import { superForm } from 'sveltekit-superforms';
 	import type { PageProps } from './$types';
-	import { Label } from '$lib/components/ui/label';
 	import { Button } from '$lib/components/ui/button';
 	import { DateFormatter } from '@internationalized/date';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import type { Category, TimeEntry } from '$lib/types';
-	import {
-		Select,
-		SelectContent,
-		SelectGroup,
-		SelectItem,
-		SelectLabel,
-		SelectTrigger
-	} from '$lib/components/ui/select';
+	import type { TimeEntry } from '$lib/types';
 	import { Hour } from '$lib/utils';
 	import {
 		Card,
@@ -25,23 +14,9 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { ArrowLeft } from "@lucide/svelte";
 	import ProgressCard from './ProgressCard.svelte';
+	import TimeEntryForm from './TimeEntryForm.svelte';
 
 	let { data }: PageProps = $props();
-
-	const { form, constraints, enhance } = superForm(data.form, { dataType: 'json' });
-
-	let categoryMap = $derived.by(() => {
-		const res: Record<string, Category[]> = {};
-		for (const category of data.categories) {
-			if (res[category.rootTitle] == undefined) {
-				res[category.rootTitle] = [];
-			}
-
-			res[category.rootTitle].push(category);
-		}
-
-		return res;
-	});
 
 	const daySummary = $derived.by(() => {
 		data.daySummary.timeEntries.forEach((entry) => console.log(entry.duration));
@@ -69,10 +44,6 @@
 			new Date(daySummary.date)
 		)
 	)
-
-	const categoryTriggerContent = $derived(
-		data.categories.find((c) => c.id == $form.categoryId)?.title ?? 'Vælg en kategori'
-	);
 </script>
 
 <div class="flex w-full items-center p-4 border rounded-xl mb-6 gap-4">
@@ -86,62 +57,7 @@
 <div class="grid w-full grid-cols-2 gap-6">
 	<ProgressCard {daySummary} />
 
-	<Card>
-		<CardContent class="h-full">
-			<form method="POST" class="flex h-full flex-col justify-evenly gap-4" use:enhance>
-				<div class="grid gap-1">
-					<Label class="gap-[2px]" for="category">Kategori<span class="text-red-700">*</span></Label
-					>
-					<Select
-						type="single"
-						name="category"
-						value={$form.categoryId.toString()}
-						onValueChange={(id) => ($form.categoryId = parseInt(id))}
-					>
-						<SelectTrigger class="w-full">
-							{categoryTriggerContent}
-						</SelectTrigger>
-						<SelectContent>
-							{#each Object.entries(categoryMap) as [label, categories]}
-								<SelectGroup>
-									<SelectLabel>{label}</SelectLabel>
-									{#each categories as category}
-										<SelectItem value={category.id.toString()}>
-											{category.title}
-										</SelectItem>
-									{/each}
-								</SelectGroup>
-							{/each}
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div class="grid gap-1">
-					<Label class="gap-[2px]" for="duration">Timer<span class="text-red-700">*</span></Label>
-					<Input
-						name="duration"
-						bind:value={$form.durationHours}
-						type="number"
-						step="0.01"
-						placeholder="Indtast antal timer"
-						{...$constraints.durationHours}
-					/>
-				</div>
-
-				<div class="grid gap-1">
-					<Label for="description">Beskrivelse</Label>
-					<Input
-						name="description"
-						bind:value={$form.description}
-						placeholder="Indtast valgfri beskrivelse"
-						{...$constraints.description}
-					/>
-				</div>
-
-				<Button type="submit" class="mt-2">Opret</Button>
-			</form>
-		</CardContent>
-	</Card>
+	<TimeEntryForm formData={data.form} categories={data.categories} />
 
 	<Card class="col-span-2">
 		<CardHeader>
