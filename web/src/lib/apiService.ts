@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import type {
+    Calendar,
 	Category,
 	RegisterTimeEntryInput,
 	Session,
@@ -279,6 +280,21 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 				ok: false,
 				error: `${body.code}: ${body.error}`
 			};
+		},
+		getCalendarYear: async function(year: number): Promise<ServiceResponse<Calendar>> {
+			const res = await fetch(`https://api.kalendarium.dk/MinimalCalendar/${year}`)
+
+			if (res.ok) {
+				return {
+					ok: true,
+					data: await res.json(),
+				}
+			}
+
+			return {
+				ok: false,
+				error: await res.text(),
+			}
 		}
 	};
 };
