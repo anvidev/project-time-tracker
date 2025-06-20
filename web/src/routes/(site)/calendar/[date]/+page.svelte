@@ -48,7 +48,7 @@
 <div class="grid w-full grid-cols-2 gap-6">
 	<ProgressCard {daySummary} />
 
-	<TimeEntryForm formData={data.form} categories={data.categories} />
+	<TimeEntryForm formData={data.createForm} categories={data.categories} />
 
 	<TimeEntryOverview {daySummary} {formattedDate} />
 </div>

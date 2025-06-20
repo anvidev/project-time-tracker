@@ -9,12 +9,11 @@
 		CardTitle
 	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { Trash } from '@lucide/svelte';
-	import { Button } from '$lib/components/ui/button';
+	import DeleteEntryModal from './DeleteEntryModal.svelte';
 
 	const {
 		daySummary,
-		formattedDate
+		formattedDate,
 	}: {
 		daySummary: SummaryDay;
 		formattedDate: string;
@@ -43,7 +42,7 @@
 			Registreringer d. {formattedDate}
 		</CardTitle>
 		<CardDescription>
-			{totalHours} af {maxHours} timer registreret 
+			{totalHours} af {maxHours} timer registreret
 		</CardDescription>
 	</CardHeader>
 	<CardContent>
@@ -59,14 +58,10 @@
 					<Badge class="bg-background" variant="outline">
 						{(entry.duration / Hour).toFixed(2)}t
 					</Badge>
-					<form method="POST" action="?/deleteTimeEntry">
-						<input type="hidden" value={entry.id.toString()} name="id" />
-						<Button variant="ghost" type="submit" class="text-red-500 hover:text-red-500 cursor-pointer">
-							<Trash />
-						</Button>
-					</form>
+					<DeleteEntryModal id={entry.id} />
 				</div>
 			</div>
 		{/each}
 	</CardContent>
 </Card>
+

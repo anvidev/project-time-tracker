@@ -23,7 +23,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		categoryId: -1,
 		durationHours: 0
 	};
-	const form = await superValidate(defaultValues, zod(createTimeEntrySchema));
+	const createForm = await superValidate(defaultValues, zod(createTimeEntrySchema));
 
 	const daySummaryRes = await locals.apiService.getSummaryForDate(
 		parseDate(params.date).toDate(getLocalTimeZone()),
@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		error(500, categoryRes.error);
 	}
 
-	return { form, categories: categoryRes.data, daySummary: daySummaryRes.data };
+	return { createForm, categories: categoryRes.data, daySummary: daySummaryRes.data };
 };
 
 export const actions: Actions = {
@@ -70,6 +70,7 @@ export const actions: Actions = {
 		}
 
 		const entryId = form.data.id
+
 		const res = await locals.apiService.deleteTimeEntry(entryId, locals.authToken);
 
 		if (res.ok) {
