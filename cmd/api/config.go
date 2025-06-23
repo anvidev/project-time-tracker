@@ -12,6 +12,7 @@ type config struct {
 }
 
 type serverConfig struct {
+	version string
 	env          string
 	addr         string
 	readTimeout  time.Duration
@@ -27,6 +28,7 @@ type databaseConfig struct {
 func loadConfig() config {
 	return config{
 		server: serverConfig{
+			version: goenv.String("SERVER_VERSION", "v0.1.0"),
 			env:          goenv.String("SERVER_ENV", "development"),
 			addr:         goenv.String("SERVER_ADDR", ":9090"),
 			readTimeout:  goenv.Duration("SERVER_READ_TIMEOUT", time.Second*10),

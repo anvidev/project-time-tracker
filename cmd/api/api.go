@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/anvidev/apiduck"
 	"github.com/anvidev/project-time-tracker/internal/database"
 	"github.com/anvidev/project-time-tracker/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -24,7 +25,10 @@ func (api *api) handler() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.StripSlashes)
 
+
 	r.Route("/v1", func(r chi.Router) {
+		r.Get("/docs", api.docs.Serve)
+
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", api.authRegister)
 			r.Post("/login", api.authLogin)
@@ -56,6 +60,7 @@ type api struct {
 	config config
 	logger *slog.Logger
 	store  *store.Store
+	docs   *apiduck.Documentation
 }
 
 func (api *api) Run() error {
@@ -91,6 +96,7 @@ func (api *api) Run() error {
 func NewApiContext(ctx context.Context) (*api, error) {
 	logger := slog.Default()
 	config := loadConfig()
+	docs := initDocumentation(config)
 
 	db, err := database.NewContext(ctx, config.database.url, config.database.token)
 	if err != nil {
@@ -104,6 +110,7 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		logger: logger,
 		config: config,
 		store:  store,
+		docs:   docs,
 	}
 
 	return api, nil
