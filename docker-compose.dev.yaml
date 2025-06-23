@@ -22,3 +22,14 @@ services:
       - ./go.sum:/app/go.sum
       - ./.air.toml:/app/.air.toml
       - /app/tmp
+
+  web: 
+    container_name: ptt-web
+    build: web/
+    ports:
+      - 5173:5173
+    environment:
+      API_BASE_URL: "http://api:9090"
+    volumes:
+      - ./web/src:/app/src
+      - ./web/static:/app/static
