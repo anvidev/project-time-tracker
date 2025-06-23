@@ -3,10 +3,11 @@
 	import type { PageProps } from './$types';
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
+	import MonthPicker from './MonthPicker.svelte';
 
 	const { data }: PageProps = $props();
 
-	const { summary, calendar } = data;
+	const { summary, calendar, date } = data;
 
 	const weekDayMap: Record<WeekDay, number> = {
 		Mandag: 0,
@@ -58,6 +59,9 @@
 <Card.Root class="my-6">
 	<Card.Header>
 		<Card.Title class="capitalize">{summary.month}</Card.Title>
+		<Card.Action>
+			<MonthPicker {date} />
+		</Card.Action>
 	</Card.Header>
 	<Card.Content class="grid grid-cols-7 gap-2">
 		{#each Object.keys(weekDayMap) as weekDay}

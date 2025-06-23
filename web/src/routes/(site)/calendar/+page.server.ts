@@ -1,7 +1,8 @@
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import type { Month } from '$lib/types';
+import { getLocalTimeZone, parseDate } from '@internationalized/date';
 
 const monthMap: Record<Month, number> = {
 	january: 1,
@@ -16,10 +17,11 @@ const monthMap: Record<Month, number> = {
 	october: 10,
 	november: 11,
 	december: 12
-}
+};
 
-export const load: PageServerLoad = async ({ locals }) => {
-	const date = new Date()
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const searchDate = url.searchParams.get('date');
+	const date = searchDate == undefined ? new Date() : parse(searchDate, 'yyyy-MM-dd', new Date());
 
 	const monthStr = format(date, 'yyyy-MM');
 
@@ -28,14 +30,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 		error(500, res.error);
 	}
 
-	const calendarRes = await locals.apiService.getCalendarYear(date.getFullYear())
+	const calendarRes = await locals.apiService.getCalendarYear(date.getFullYear());
 	if (!calendarRes.ok) {
 		error(500, calendarRes.error);
 	}
 
 	const calendar = {
-		days: calendarRes.data.days.filter(day => day.month == monthMap[res.data.month])
-	}
+		days: calendarRes.data.days.filter((day) => day.month == monthMap[res.data.month])
+	};
 
-	return { summary: res.data, calendar };
+	return { summary: res.data, calendar, date: date };
 };
