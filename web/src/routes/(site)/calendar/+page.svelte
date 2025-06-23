@@ -66,18 +66,18 @@
 	});
 </script>
 
-<Card.Root class="my-6 w-full max-h-[90dvh]">
+<Card.Root class="my-6 max-h-[90dvh] w-full">
 	<Card.Header>
 		<Card.Title class="capitalize">{title}</Card.Title>
 		<Card.Action>
 			<MonthPicker {date} />
 		</Card.Action>
 	</Card.Header>
-	<Card.Content class="grid grid-cols-7 gap-2 w-full">
+	<Card.Content class="grid w-full grid-cols-7 gap-2">
 		{#each Object.keys(weekDayMap) as weekDay}
 			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>
 		{/each}
-		{#each daysWithCalendarInfo as day}
+		{#each daysWithCalendarInfo as day (day?.id ?? crypto.randomUUID())}
 			<CalendarDayLink {day} />
 		{/each}
 	</Card.Content>
