@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import type {
-    Calendar,
+	Calendar,
 	Category,
 	RegisterTimeEntryInput,
 	Session,
@@ -27,79 +27,51 @@ export type ServiceResponse<T = unknown, E extends string = string> =
 	| SuccessServiceResponse<T>
 	| ErrorServiceResponse<E>;
 
-export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
-	return {
-		// AUTH FUNCTIONS
-		register: async function(data: {
-			name: string;
-			email: string;
-			password: string;
-		}): Promise<ServiceResponse> {
-			const res = await fetch(`${baseUrl}/v1/auth/register`, {
-				method: 'POST',
-				body: JSON.stringify(data)
-			});
+export type ApiService = {
+	register: (data: { name: string; email: string; password: string }) => Promise<ServiceResponse>;
+	logIn: (data: { email: string; password: string }) => Promise<ServiceResponse<Session>>;
+	getUserCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
+	createTimeEntry: (
+		data: RegisterTimeEntryInput,
+		authToken: string
+	) => Promise<ServiceResponse<TimeEntry>>;
+	deleteTimeEntry: (id: number, authToken: string) => Promise<ServiceResponse<undefined>>;
+	getSummaryForDate: (
+		date: Date | string,
+		authToken: string
+	) => Promise<ServiceResponse<SummaryDay>>;
+	getSummaryForMonth: (
+		monthStr: string,
+		authToken: string
+	) => Promise<ServiceResponse<SummaryMonth>>;
+	getCalendarYear: (year: number) => Promise<ServiceResponse<Calendar>>;
+};
 
-			if (res.ok) {
-				return {
-					ok: true,
-					data: await res.json()
-				};
-			}
+let apiServiceInstance: ApiService | undefined;
 
-			const body: {
-				error: string;
-				code: string;
-			} = await res.json();
+export type TApiServiceFactory = (fetch: FetchFn, baseUrl: string) => ApiService;
 
-			return {
-				ok: false,
-				error: `${body.code}: ${body.error}`
-			};
-		},
-		logIn: async function(data: {
-			email: string;
-			password: string;
-		}): Promise<ServiceResponse<Session>> {
-			const res = await fetch(`${baseUrl}/v1/auth/login`, {
-				method: 'POST',
-				body: JSON.stringify(data)
-			});
+export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
+	if (apiServiceInstance == undefined) {
+		apiServiceInstance = {
+			// AUTH FUNCTIONS
+			register: async function(data: {
+				name: string;
+				email: string;
+				password: string;
+			}): Promise<ServiceResponse> {
+				const res = await fetch(`${baseUrl}/v1/auth/register`, {
+					method: 'POST',
+					body: JSON.stringify(data)
+				});
 
-			if (res.ok) {
-				return {
-					ok: true,
-					data: await res.json().then((data) => data.session)
-				};
-			}
-
-			const body: {
-				error: string;
-				code: string;
-			} = await res.json();
-
-			return {
-				ok: false,
-				error: `${body.code}: ${body.error}`
-			};
-		},
-
-		// CATEGORIES
-		getUserCategories: async function(authToken: string): Promise<ServiceResponse<Category[]>> {
-			const res = await fetch(`${baseUrl}/v1/me/categories`, {
-				headers: {
-					Authorization: `Bearer ${authToken}`
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res.json()
+					};
 				}
-			});
 
-			if (res.ok) {
-				return {
-					ok: true,
-					data: (await res.json()).categories
-				};
-			}
-
-			if (res.headers.get('content-type')?.includes('application/json')) {
 				const body: {
 					error: string;
 					code: string;
@@ -109,192 +81,248 @@ export const ApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
 					ok: false,
 					error: `${body.code}: ${body.error}`
 				};
-			} else {
-				const body = await res.text();
+			},
+			logIn: async function(data: {
+				email: string;
+				password: string;
+			}): Promise<ServiceResponse<Session>> {
+				const res = await fetch(`${baseUrl}/v1/auth/login`, {
+					method: 'POST',
+					body: JSON.stringify(data)
+				});
 
-				console.error(body);
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res.json().then((data) => data.session)
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
 				return {
 					ok: false,
-					error: body
+					error: `${body.code}: ${body.error}`
 				};
-			}
-		},
+			},
 
-		// TIME_ENTRIES
-		createTimeEntry: async function(
-			data: RegisterTimeEntryInput,
-			authToken: string
-		): Promise<ServiceResponse<TimeEntry>> {
-			const res = await fetch(`${baseUrl}/v1/me/time_entries`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${authToken}`
-				},
-				body: JSON.stringify(data)
-			});
+			// CATEGORIES
+			getUserCategories: async function(authToken: string): Promise<ServiceResponse<Category[]>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
 
-			if (res.ok) {
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json()).categories
+					};
+				}
+
+				if (res.headers.get('content-type')?.includes('application/json')) {
+					const body: {
+						error: string;
+						code: string;
+					} = await res.json();
+
+					return {
+						ok: false,
+						error: `${body.code}: ${body.error}`
+					};
+				} else {
+					const body = await res.text();
+
+					console.error(body);
+					return {
+						ok: false,
+						error: body
+					};
+				}
+			},
+
+			// TIME_ENTRIES
+			createTimeEntry: async function(
+				data: RegisterTimeEntryInput,
+				authToken: string
+			): Promise<ServiceResponse<TimeEntry>> {
+				const res = await fetch(`${baseUrl}/v1/me/time_entries`, {
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res.json().then((json) => ({
+							...json.timeEntry,
+							duration: parseDuration(json.timeEntry.duration)
+						}))
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
 				return {
-					ok: true,
-					data: await res.json().then((json) => ({
-						...json.timeEntry,
-						duration: parseDuration(json.timeEntry.duration)
-					}))
+					ok: false,
+					error: `${body.code}: ${body.error}`
 				};
-			}
+			},
+			deleteTimeEntry: async function(
+				id: number,
+				authToken: string
+			): Promise<ServiceResponse<undefined>> {
+				const res = await fetch(`${baseUrl}/v1/me/time_entries/${id}`, {
+					method: 'DELETE',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
 
-			const body: {
-				error: string;
-				code: string;
-			} = await res.json();
-
-			return {
-				ok: false,
-				error: `${body.code}: ${body.error}`
-			};
-		},
-		deleteTimeEntry: async function(
-			id: number,
-			authToken: string,
-		): Promise<ServiceResponse<undefined>> {
-			const res = await fetch(`${baseUrl}/v1/me/time_entries/${id}`, {
-				method: 'DELETE',
-				headers: {
-					Authorization: `Bearer ${authToken}`
+				if (res.ok) {
+					return {
+						ok: true,
+						data: undefined
+					};
 				}
-			});
 
-			if (res.ok) {
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
 				return {
-					ok: true,
-					data: undefined,
-				}
-			}
-
-			const body: {
-				error: string;
-				code: string;
-			} = await res.json();
-
-			return {
-				ok: false,
-				error: `${body.code}: ${body.error}`
-			};
-		},
-		getSummaryForDate: async function(
-			date: Date | string,
-			authToken: string
-		): Promise<ServiceResponse<SummaryDay>> {
-			let dateStr: string;
-			if (date instanceof Date) {
-				dateStr = format(date, 'yyyy-MM-dd');
-			} else {
-				dateStr = date;
-			}
-
-			const res = await fetch(`${baseUrl}/v1/me/time_entries/day/${dateStr}`, {
-				headers: {
-					Authorization: `Bearer ${authToken}`
-				}
-			});
-
-			if (res.ok) {
-				return {
-					ok: true,
-					data: await res
-						.json()
-						.then((json) => json.summary as SummaryDayDTO)
-						.then((summary) => {
-							let maxHours = parseDuration(summary.maxHours) ?? 0;
-							if (maxHours == 0) {
-								maxHours = 7.5 * Hour;
-							}
-							return {
-								date: summary.date,
-								totalHours: parseDuration(summary.totalHours) ?? -1,
-								maxHours,
-								timeEntries: summary.timeEntries.map((e) => ({
-									...e,
-									duration: parseDuration(e.duration) ?? -1
-								}))
-							};
-						})
+					ok: false,
+					error: `${body.code}: ${body.error}`
 				};
-			}
-
-			const body: {
-				error: string;
-				code: string;
-			} = await res.json();
-
-			return {
-				ok: false,
-				error: `${body.code}: ${body.error}`
-			};
-		},
-		getSummaryForMonth: async function(
-			monthStr: string,
-			authToken: string
-		): Promise<ServiceResponse<SummaryMonth>> {
-			const res = await fetch(`${baseUrl}/v1/me/time_entries/month/${monthStr}`, {
-				headers: {
-					Authorization: `Bearer ${authToken}`
+			},
+			getSummaryForDate: async function(
+				date: Date | string,
+				authToken: string
+			): Promise<ServiceResponse<SummaryDay>> {
+				let dateStr: string;
+				if (date instanceof Date) {
+					dateStr = format(date, 'yyyy-MM-dd');
+				} else {
+					dateStr = date;
 				}
-			});
 
-			if (res.ok) {
-				return {
-					ok: true,
-					data: await res
-						.json()
-						.then((json) => json.summary as SummaryMonthDTO)
-						.then((summary) => ({
-							month: summary.month,
-							totalHours: parseDuration(summary.totalHours) ?? -1,
-							maxHours: parseDuration(summary.maxHours) ?? -1,
-							days: summary.days.map((day) => {
-								let maxHours = parseDuration(day.maxHours) ?? 0;
+				const res = await fetch(`${baseUrl}/v1/me/time_entries/day/${dateStr}`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res
+							.json()
+							.then((json) => json.summary as SummaryDayDTO)
+							.then((summary) => {
+								let maxHours = parseDuration(summary.maxHours) ?? 0;
 								if (maxHours == 0) {
 									maxHours = 7.5 * Hour;
 								}
 								return {
-									date: day.date,
-									totalHours: parseDuration(day.totalHours) ?? -1,
+									date: summary.date,
+									totalHours: parseDuration(summary.totalHours) ?? -1,
 									maxHours,
-									timeEntries: day.timeEntries.map((e) => ({
+									timeEntries: summary.timeEntries.map((e) => ({
 										...e,
 										duration: parseDuration(e.duration) ?? -1
 									}))
 								};
 							})
-						}))
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			getSummaryForMonth: async function(
+				monthStr: string,
+				authToken: string
+			): Promise<ServiceResponse<SummaryMonth>> {
+				const res = await fetch(`${baseUrl}/v1/me/time_entries/month/${monthStr}`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res
+							.json()
+							.then((json) => json.summary as SummaryMonthDTO)
+							.then((summary) => ({
+								month: summary.month,
+								totalHours: parseDuration(summary.totalHours) ?? -1,
+								maxHours: parseDuration(summary.maxHours) ?? -1,
+								days: summary.days.map((day) => {
+									let maxHours = parseDuration(day.maxHours) ?? 0;
+									if (maxHours == 0) {
+										maxHours = 7.5 * Hour;
+									}
+									return {
+										date: day.date,
+										totalHours: parseDuration(day.totalHours) ?? -1,
+										maxHours,
+										timeEntries: day.timeEntries.map((e) => ({
+											...e,
+											duration: parseDuration(e.duration) ?? -1
+										}))
+									};
+								})
+							}))
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			getCalendarYear: async function(year: number): Promise<ServiceResponse<Calendar>> {
+				const res = await fetch(`https://api.kalendarium.dk/MinimalCalendar/${year}`);
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res.json()
+					};
+				}
+
+				return {
+					ok: false,
+					error: await res.text()
 				};
 			}
+		};
+	}
 
-			const body: {
-				error: string;
-				code: string;
-			} = await res.json();
-
-			return {
-				ok: false,
-				error: `${body.code}: ${body.error}`
-			};
-		},
-		getCalendarYear: async function(year: number): Promise<ServiceResponse<Calendar>> {
-			const res = await fetch(`https://api.kalendarium.dk/MinimalCalendar/${year}`)
-
-			if (res.ok) {
-				return {
-					ok: true,
-					data: await res.json(),
-				}
-			}
-
-			return {
-				ok: false,
-				error: await res.text(),
-			}
-		}
-	};
+	return apiServiceInstance!;
 };
