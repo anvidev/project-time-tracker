@@ -29,6 +29,7 @@ func NewStore(db *sql.DB) *Store {
 
 type TimeEntriesStorer interface {
 	Register(ctx context.Context, userId int64, input time_entries.RegisterTimeEntryInput) (*time_entries.TimeEntry, error)
+	Update(ctx context.Context, userId int64, input time_entries.UpdateTimeEntryInput) (*time_entries.TimeEntry, error)
 	Delete(ctx context.Context, id, userId int64) error
 	SummaryDay(ctx context.Context, userId int64, date time.Time) (*time_entries.SummaryDay, error)
 	SummaryMonth(ctx context.Context, userId int64, month time.Month, year int) (*time_entries.SummaryMonth, error)
