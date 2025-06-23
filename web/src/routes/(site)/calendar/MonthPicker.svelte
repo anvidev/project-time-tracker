@@ -6,6 +6,7 @@
 	const { date }: { date: Date } = $props();
 
 	const prevMonth = $derived(format(subMonths(date, 1), 'yyyy-MM-dd'));
+
 	const nextMonth = $derived(format(addMonths(date, 1), 'yyyy-MM-dd'));
 </script>
 

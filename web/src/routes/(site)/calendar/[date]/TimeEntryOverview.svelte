@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SummaryDay } from '$lib/types';
-	import { Hour } from '$lib/utils';
+	import { Hour, maxFractionDigits } from '$lib/utils';
 	import {
 		Card,
 		CardContent,
@@ -24,7 +24,7 @@
 			return 0;
 		}
 
-		return daySummary.totalHours / Hour;
+		return maxFractionDigits(daySummary.totalHours / Hour, 2);
 	});
 
 	const maxHours = $derived.by(() => {
@@ -32,7 +32,7 @@
 			return 0;
 		}
 
-		return daySummary.maxHours / Hour;
+		return maxFractionDigits(daySummary.maxHours / Hour, 2);
 	});
 </script>
 
@@ -52,11 +52,11 @@
 					<div>
 						<p class="font-semibold tracking-tight">{entry.category}</p>
 						<p class="text-muted-foreground text-sm">
-							{((entry.duration / daySummary.totalHours) * 100).toFixed(1)}% af total
+							{maxFractionDigits((entry.duration / daySummary.totalHours) * 100, 2)}% af total
 						</p>
 					</div>
 					<div class="flex gap-2">
-						<Badge class="bg-background" variant="outline">
+						<Badge class="bg-background px-3 py-2" variant="outline">
 							{(entry.duration / Hour).toFixed(2)}t
 						</Badge>
 						<DeleteEntryModal id={entry.id} />

@@ -1,24 +1,31 @@
 <script lang="ts">
 	import type { SummaryDay } from '$lib/types';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Hour } from '$lib/utils';
+	import { Hour, maxFractionDigits } from '$lib/utils';
 
 	const { daySummary }: { daySummary: SummaryDay } = $props();
+
+	const completedPercentage = $derived(
+		maxFractionDigits((daySummary.totalHours / daySummary.maxHours) * 100, 2)
+	);
 
 	const averageTime = $derived.by(() => {
 		if (daySummary.totalHours == 0 || daySummary.timeEntries.length == 0) {
 			return 0;
 		}
 
-		return daySummary.totalHours / Hour / daySummary.timeEntries.length;
+		return maxFractionDigits(daySummary.totalHours / Hour / daySummary.timeEntries.length, 2);
 	});
 
+	const totalHours = $derived(maxFractionDigits(daySummary.totalHours / Hour, 1));
+	const maxHours = $derived(maxFractionDigits(daySummary.maxHours / Hour, 1));
+
 	const remainingHours = $derived(
-		Math.max((daySummary.maxHours - daySummary.totalHours) / Hour, 0)
+		maxFractionDigits(Math.max((daySummary.maxHours - daySummary.totalHours) / Hour, 0), 1)
 	);
 
 	const progressPercentage = $derived(
-		Math.min((daySummary.totalHours / daySummary.maxHours) * 100, 100)
+		maxFractionDigits(Math.min((daySummary.totalHours / daySummary.maxHours) * 100, 100), 2)
 	);
 
 	const getProgressColor = () => {
@@ -62,13 +69,13 @@
 
 			<div class="absolute inset-0 flex flex-col items-center justify-center">
 				<div class="text-3xl font-bold text-slate-800">
-					{(daySummary.totalHours / Hour).toFixed(1)}t
+					{totalHours}t
 				</div>
 				<div class="text-sm text-slate-500">
-					af {(daySummary.maxHours / Hour).toFixed(1)} timer
+					af {maxHours} timer
 				</div>
 				{#if remainingHours > 0}
-					<div class="mt-1 text-xs text-slate-400">Mangler {remainingHours.toFixed(1)}t</div>
+					<div class="mt-1 text-xs text-slate-400">Mangler {remainingHours}t</div>
 				{/if}
 			</div>
 		</div>
@@ -79,7 +86,7 @@
 			</div>
 			<div class="flex flex-col items-center justify-center">
 				<p class="text-lg font-semibold">
-					{((daySummary.totalHours / daySummary.maxHours) * 100).toFixed(1)}%
+					{completedPercentage}%
 				</p>
 				<p class="text-muted-foreground text-sm">Udførsel</p>
 			</div>

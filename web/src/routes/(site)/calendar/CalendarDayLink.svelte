@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { maxFractionDigits } from "$lib/utils";
 	import type { SummaryDay, WeekDay } from '$lib/types';
 	import { parseDate } from '@internationalized/date';
 	import { isFuture, isPast } from 'date-fns';
@@ -27,7 +28,7 @@
 		return !isFuture(day?.date ?? new Date()) && progress < 1 ? 'text-red-500' : 'text-slate-200';
 	};
 
-	const commonStyles = 'flex w-28 h-18 flex-col justify-between rounded-xl border p-2';
+	const commonStyles = 'flex w-full aspect-16/8 flex-col justify-between rounded-xl border p-2';
 </script>
 
 {#if day == undefined}
@@ -54,7 +55,12 @@
 			<p class="text-muted-foreground w-full text-sm font-semibold">
 				{parseDate(day.date).day}
 			</p>
-			<div class="flex flex-col items-end justify-center">
+			<div class="flex gap-1 items-end justify-center">
+				{#if isPast(day.date)}
+					<p class="text-muted-foreground text-center text-xs">
+						{maxFractionDigits(progress, 2)}%
+					</p>
+				{/if}
 				<svg class="size-4 -rotate-90 transform" viewBox="0 0 100 100">
 					<circle
 						cx="50"
@@ -78,11 +84,6 @@
 						stroke-linecap="round"
 					/>
 				</svg>
-				{#if isPast(day.date)}
-					<p class="text-muted-foreground text-center text-xs">
-						{progress}%
-					</p>
-				{/if}
 			</div>
 		</div>
 	</a>

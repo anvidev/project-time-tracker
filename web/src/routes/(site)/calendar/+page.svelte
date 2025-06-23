@@ -4,10 +4,11 @@
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
 	import MonthPicker from './MonthPicker.svelte';
+	import { DateFormatter } from '@internationalized/date';
 
 	const { data }: PageProps = $props();
 
-	const { summary, calendar, date } = data;
+	const { summary, calendar, date } = $derived(data);
 
 	const weekDayMap: Record<WeekDay, number> = {
 		Mandag: 0,
@@ -18,6 +19,15 @@
 		Lørdag: 5,
 		Søndag: 6
 	};
+
+	const title = $derived.by(() => {
+		const dateFormatter = new DateFormatter('da-DK', {
+			month: 'long',
+			year: 'numeric'
+		});
+
+		return dateFormatter.format(date);
+	});
 
 	const daysWithCalendarInfo = $derived.by(() => {
 		if (summary.days.length < 28) {
@@ -56,14 +66,14 @@
 	});
 </script>
 
-<Card.Root class="my-6">
+<Card.Root class="my-6 w-full max-h-[90dvh]">
 	<Card.Header>
-		<Card.Title class="capitalize">{summary.month}</Card.Title>
+		<Card.Title class="capitalize">{title}</Card.Title>
 		<Card.Action>
 			<MonthPicker {date} />
 		</Card.Action>
 	</Card.Header>
-	<Card.Content class="grid grid-cols-7 gap-2">
+	<Card.Content class="grid grid-cols-7 gap-2 w-full">
 		{#each Object.keys(weekDayMap) as weekDay}
 			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>
 		{/each}

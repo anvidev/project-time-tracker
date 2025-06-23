@@ -13,6 +13,15 @@ export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, "childre
 export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
 
+export const maxFractionDigits = (num: number, digits: number) => {
+	if (num % 1 == 0) {
+		return num
+	}
+
+	const multiplier = Math.pow(10, digits)
+	return Math.round(num * multiplier) / multiplier 
+}
+
 export const Nanosecond: Duration = 1
 export const Microsecond: Duration = 1000 * Nanosecond
 export const Millisecond: Duration = 1000 * Microsecond

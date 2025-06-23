@@ -39,5 +39,5 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		days: calendarRes.data.days.filter((day) => day.month == monthMap[res.data.month])
 	};
 
-	return { summary: res.data, calendar, date: date };
+	return { summary: res.data, calendar, date };
 };

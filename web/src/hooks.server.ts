@@ -1,8 +1,9 @@
 import { ApiServiceFactory } from '$lib/apiService';
 import { redirect, type Handle } from '@sveltejs/kit';
+import { API_BASE_URL } from "$env/static/private";
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.apiService = ApiServiceFactory(event.fetch, 'http://localhost:9090');
+	event.locals.apiService = ApiServiceFactory(event.fetch, API_BASE_URL);
 
 	const authToken = event.cookies.get('authToken');
 	if (!event.url.pathname.startsWith('/auth') && authToken == undefined) {
