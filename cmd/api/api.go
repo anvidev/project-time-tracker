@@ -25,9 +25,10 @@ func (api *api) handler() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.StripSlashes)
 
-	r.Get("/docs", api.docs.Serve)
 
 	r.Route("/v1", func(r chi.Router) {
+		r.Get("/docs", api.docs.Serve)
+
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", api.authRegister)
 			r.Post("/login", api.authLogin)
@@ -95,7 +96,7 @@ func (api *api) Run() error {
 func NewApiContext(ctx context.Context) (*api, error) {
 	logger := slog.Default()
 	config := loadConfig()
-	docs := initDocumentation()
+	docs := initDocumentation(config)
 
 	db, err := database.NewContext(ctx, config.database.url, config.database.token)
 	if err != nil {

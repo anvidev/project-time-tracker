@@ -19,11 +19,11 @@ func ptr[T any](v T) *T {
 	return p
 }
 
-func initDocumentation() *apiduck.Documentation {
+func initDocumentation(config config) *apiduck.Documentation {
 	docs := apiduck.New(
 		"Tidsregistrering API",
 		"Internt værktøj til at dokumentere og overskue den tid der er brugt på projekter",
-		"v0.0.1",
+		config.server.version,
 		apiduck.WithContact(
 			"Skancode A/S",
 			"support@skancode.dk",
