@@ -33,7 +33,19 @@ export interface SummaryDayDTO {
 	timeEntries: TimeEntryDTO[];
 }
 
-export type Month = 'january' | 'february' | 'march' | 'april' | 'may' | 'june' | 'july' | 'august' | 'september' | 'october' | 'november' | 'december'
+export type Month =
+	| 'january'
+	| 'february'
+	| 'march'
+	| 'april'
+	| 'may'
+	| 'june'
+	| 'july'
+	| 'august'
+	| 'september'
+	| 'october'
+	| 'november'
+	| 'december';
 
 export interface SummaryMonth {
 	month: Month;
@@ -72,40 +84,42 @@ export interface TimeEntryDTO {
 export type Duration = number;
 
 export interface Calendar {
-	days: Day[]
+	days: Day[];
 }
 
 export interface Day {
-	year: number
-	month: number
-	day: number
-	julianDay: number
-	date: string
-	formattedDate: string
-	dayInYear: number
-	dayName: string
-	altNames: string
-	wiki_link: string
-	weekday: string
-	weekNumber: string
-	holliday: boolean
-	moonSymbol: string
-	events: Event[]
+	year: number;
+	month: number;
+	day: number;
+	julianDay: number;
+	date: string;
+	formattedDate: string;
+	dayInYear: number;
+	dayName: string;
+	altNames: string;
+	wiki_link: string;
+	weekday: string;
+	weekNumber: string;
+	holliday: boolean;
+	moonSymbol: string;
+	events: Event[];
 }
 
 export interface Event {
-	id: number
-	danishShort: string
-	danishLong: string
-	latinShort: string
-	latinLong: string
-	merkedage: boolean
-	minimal: boolean
-	kirkeaar: boolean
-	holliday: boolean
-	liturgiskFarve: string
-	vises: string
-	visesHellig: string
-	definition: string
-	wikiLink: string
+	id: number;
+	danishShort: string;
+	danishLong: string;
+	latinShort: string;
+	latinLong: string;
+	merkedage: boolean;
+	minimal: boolean;
+	kirkeaar: boolean;
+	holliday: boolean;
+	liturgiskFarve: string;
+	vises: string;
+	visesHellig: string;
+	definition: string;
+	wikiLink: string;
 }
+
+export type WeekDay = 'Mandag' | 'Tirsdag' | 'Onsdag' | 'Torsdag' | 'Fredag' | 'Lørdag' | 'Søndag';

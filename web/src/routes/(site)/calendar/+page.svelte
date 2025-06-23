@@ -1,14 +1,12 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
-	import { parseDate } from '@internationalized/date';
 	import type { PageProps } from './$types';
-	import { Hour } from '$lib/utils.js';
+	import type { WeekDay } from '$lib/types';
+	import CalendarDayLink from './CalendarDayLink.svelte';
 
 	const { data }: PageProps = $props();
 
 	const { summary, calendar } = data;
-
-	type WeekDay = 'Mandag' | 'Tirsdag' | 'Onsdag' | 'Torsdag' | 'Fredag' | 'Lørdag' | 'Søndag';
 
 	const weekDayMap: Record<WeekDay, number> = {
 		Mandag: 0,
@@ -47,9 +45,13 @@
 			return days;
 		}
 
-		const remainingDays = 7-((days.length + weekDaysBeforeFirst) % 7)
+		const remainingDays = 7 - ((days.length + weekDaysBeforeFirst) % 7);
 
-		return [...Array.from(Array(weekDaysBeforeFirst)), ...days, ...Array.from(Array(remainingDays))];
+		return [
+			...Array.from(Array(weekDaysBeforeFirst)),
+			...days,
+			...Array.from(Array(remainingDays))
+		];
 	});
 </script>
 
@@ -62,34 +64,7 @@
 			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>
 		{/each}
 		{#each daysWithCalendarInfo as day}
-			{#if day == undefined}
-				<div class="bg-muted flex size-28 flex-col justify-between rounded-xl border p-2"></div>
-			{:else if day.holliday}
-				<div class="bg-muted-foreground/30 bg-striped flex size-28 flex-col justify-between rounded-xl border p-2">
-					<p class="text-muted-foreground w-full text-sm font-semibold space-x-2">
-						<span>{parseDate(day.date).day}</span>
-						<span>{day.dayName}</span>
-					</p>
-				</div>
-			{:else if day.isWeekend}
-				<div class="bg-striped bg-muted/25 flex size-28 flex-col justify-between rounded-xl border p-2">
-					<p class="text-muted-foreground w-full text-sm font-semibold space-x-2">
-						<span>{parseDate(day.date).day}</span>
-					</p>
-				</div>
-			{:else}
-				<a
-					href={`/calendar/${day.date}`}
-					class="flex size-28 flex-col justify-between rounded-xl border p-2 transition-all hover:border-blue-800 hover:shadow-sm"
-				>
-					<p class="text-muted-foreground w-full text-sm font-semibold">
-						{parseDate(day.date).day}
-					</p>
-					{#if day.totalHours / Hour >= 0.1}
-						<p class="w-full text-center text-sm">{day.totalHours / Hour}t</p>
-					{/if}
-				</a>
-			{/if}
+			<CalendarDayLink {day} />
 		{/each}
 	</Card.Content>
 </Card.Root>
