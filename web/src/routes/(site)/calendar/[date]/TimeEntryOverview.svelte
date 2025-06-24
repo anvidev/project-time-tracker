@@ -18,24 +18,26 @@
 		formattedDate: string;
 	} = $props();
 
+	const { timeEntries, totalHours: totalHoursProp, maxHours: maxHoursProp } = $derived(daySummary)
+
 	const totalHours = $derived.by(() => {
-		if (daySummary.totalHours == 0) {
+		if (totalHoursProp == 0) {
 			return 0;
 		}
 
-		return maxFractionDigits(daySummary.totalHours / Hour, 2);
+		return maxFractionDigits(totalHoursProp / Hour, 2);
 	});
 
 	const maxHours = $derived.by(() => {
-		if (daySummary.maxHours == 0) {
+		if (maxHoursProp == 0) {
 			return 0;
 		}
 
-		return maxFractionDigits(daySummary.maxHours / Hour, 2);
+		return maxFractionDigits(maxHoursProp / Hour, 2);
 	});
 </script>
 
-{#if daySummary.timeEntries.length > 0}
+{#if timeEntries.length > 0}
 	<Card class="col-span-2">
 		<CardHeader>
 			<CardTitle>
@@ -46,7 +48,7 @@
 			</CardDescription>
 		</CardHeader>
 		<CardContent>
-			{#each daySummary.timeEntries as entry (entry.id)}
+			{#each timeEntries as entry (entry.id)}
 				<TimeEntryCard {entry} maxHours={daySummary.maxHours} />
 			{/each}
 		</CardContent>

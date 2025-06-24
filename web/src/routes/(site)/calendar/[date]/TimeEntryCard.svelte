@@ -12,14 +12,20 @@
 
 	let editable = $state(false);
 
-	const formData = $derived({
+	//const formData = $derived.by(() => ());
+
+	const { form, enhance } = superForm({
 		id: entry.id,
 		durationHours: entry.duration / Hour,
 		description: entry.description
-	});
+	}, {
+		dataType: 'json',
+		onUpdated: ({ form: updatedForm }) => {
+			$form.durationHours = updatedForm.data.durationHours
+			$form.description = updatedForm.data.description
 
-	const { form, enhance } = superForm((() => formData)(), {
-		dataType: 'json'
+			editable = false;
+		}
 	});
 </script>
 
