@@ -12,10 +12,14 @@
 
 	let editable = $state(false);
 
-	const formData = $derived({ id: entry.id, durationHours: entry.duration / Hour, description: entry.description })
+	const formData = $derived({
+		id: entry.id,
+		durationHours: entry.duration / Hour,
+		description: entry.description
+	});
 
 	const { form, enhance } = superForm((() => formData)(), {
-		dataType: "json",
+		dataType: 'json'
 	});
 </script>
 
@@ -53,7 +57,13 @@
 		>
 			<Input type="hidden" bind:value={$form.description} />
 			<div class="relative col-span-2 col-start-1">
-				<Input class="w-full" bind:value={$form.durationHours} />
+				<Input
+					type="number"
+					step="0.01"
+					inputmode="numeric"
+					class="input-arrows-none w-full"
+					bind:value={$form.durationHours}
+				/>
 				<span
 					class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
 				>
