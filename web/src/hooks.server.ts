@@ -1,6 +1,6 @@
 import { ApiServiceFactory } from '$lib/apiService';
+import { API_BASE_URL } from '$lib/env';
 import { redirect, type Handle } from '@sveltejs/kit';
-import { API_BASE_URL } from "$env/static/private";
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.apiService = ApiServiceFactory(event.fetch, API_BASE_URL);

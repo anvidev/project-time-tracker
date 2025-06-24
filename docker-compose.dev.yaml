@@ -2,7 +2,9 @@ services:
 
   api:
     container_name: ptt-api
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
     ports:
       - 9090:9090
     environment:
@@ -25,7 +27,9 @@ services:
 
   web: 
     container_name: ptt-web
-    build: web/
+    build: 
+      context: ./web
+      dockerfile: Dockerfile.dev
     ports:
       - 5173:5173
     environment:

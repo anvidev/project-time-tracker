@@ -2,7 +2,9 @@ services:
 
   api:
     container_name: ptt-api
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile.prod
     ports:
       - 9091:9090
     environment:
@@ -10,7 +12,7 @@ services:
       TURSO_AUTH_TOKEN: ${TURSO_AUTH_TOKEN}
 
       SERVER_VERSION: ${SERVER_VERSION}
-      SERVER_ENV: ${SERVER_ENV}
+      SERVER_ENV: production
       SERVER_ADDR: ${SERVER_ADDR}
       SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT}
       SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
@@ -24,7 +26,9 @@ services:
       - /app/tmp
 
   web:
-    build: ./web/Dockerfile.prod
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
     container_name: web
     restart: unless-stopped
     environment:
@@ -32,4 +36,4 @@ services:
       ORIGIN: ${ORIGIN}
       API_BASE_URL: http://api:9090
     ports:
-      - 3001:5173
+      - 3001:3000
