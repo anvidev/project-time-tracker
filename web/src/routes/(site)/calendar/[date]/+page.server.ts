@@ -5,10 +5,17 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { error } from '@sveltejs/kit';
 import { Hour } from '$lib/utils';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
+import type { UpdateTimeEntryInput } from '$lib/types';
 
 const createTimeEntrySchema = z.object({
 	categoryId: z.coerce.number(),
 	date: z.string(),
+	durationHours: z.coerce.number(),
+	description: z.string().optional()
+});
+
+const updateTimeEntrySchema = z.object({
+	id: z.coerce.number(),
 	durationHours: z.coerce.number(),
 	description: z.string().optional()
 });
@@ -59,6 +66,25 @@ export const actions: Actions = {
 
 		if (res.ok) {
 			return message(form, 'Created Time Entry');
+		}
+
+		return message(form, res.error, { status: 500 });
+	},
+	updateTimeEntry: async ({ request, locals }) => {
+		const form = await superValidate(request, zod(updateTimeEntrySchema));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const data: UpdateTimeEntryInput = {
+			duration: form.data.durationHours * Hour,
+			description: form.data.description ?? "",
+		};
+
+		const res = await locals.apiService.updateTimeEntry(form.data.id, data, locals.authToken);
+
+		if (res.ok) {
+			return message(form, 'Updated Time Entry');
 		}
 
 		return message(form, res.error, { status: 500 });

@@ -8,7 +8,8 @@ import type {
 	SummaryDayDTO,
 	SummaryMonth,
 	SummaryMonthDTO,
-	TimeEntry
+	TimeEntry,
+    UpdateTimeEntryInput
 } from './types';
 import { Hour, parseDuration } from './utils';
 
@@ -33,6 +34,11 @@ export type ApiService = {
 	getUserCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
 	createTimeEntry: (
 		data: RegisterTimeEntryInput,
+		authToken: string
+	) => Promise<ServiceResponse<TimeEntry>>;
+	updateTimeEntry: (
+		id: number,
+		data: UpdateTimeEntryInput,
 		authToken: string
 	) => Promise<ServiceResponse<TimeEntry>>;
 	deleteTimeEntry: (id: number, authToken: string) => Promise<ServiceResponse<undefined>>;
@@ -157,6 +163,39 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					},
 					body: JSON.stringify(data)
 				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res.json().then((json) => ({
+							...json.timeEntry,
+							duration: parseDuration(json.timeEntry.duration)
+						}))
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			updateTimeEntry: async function(
+				id: number,
+				data: UpdateTimeEntryInput,
+				authToken: string
+			): Promise<ServiceResponse<TimeEntry>> {
+				const res = await fetch(`${baseUrl}/v1/me/time_entries/${id}`, {
+					method: "put",
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify(data),
+				})
 
 				if (res.ok) {
 					return {

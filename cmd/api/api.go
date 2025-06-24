@@ -44,7 +44,7 @@ func (api *api) handler() http.Handler {
 
 			r.Route("/time_entries", func(r chi.Router) {
 				r.Post("/", api.entriesRegisterTime)
-				r.Put("/", api.entriesUpdateTime)
+				r.Put("/{id}", api.entriesUpdateTime)
 				r.Delete("/{id}", api.entriesDelete)
 				r.Get("/day/{date}", api.entriesSummaryDay)           // date: YYYY-MM-DD
 				r.Get("/month/{year-month}", api.entriesSummaryMonth) // month: YYYY-MM

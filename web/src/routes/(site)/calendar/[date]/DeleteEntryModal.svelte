@@ -16,10 +16,11 @@
 	<AlertDialog.Trigger
 		class={buttonVariants({
 			variant: 'outline',
-			class: 'cursor-pointer text-red-500 hover:text-red-500'
+			class: 'cursor-pointer text-red-500 hover:text-red-500',
+			size: 'icon'
 		})}
 	>
-		<Trash />
+		<Trash class="size-4" />
 	</AlertDialog.Trigger>
 	<AlertDialog.Content>
 		<AlertDialog.Header>
@@ -32,7 +33,10 @@
 			<AlertDialog.Cancel>Annuller</AlertDialog.Cancel>
 			<form method="POST" action="?/deleteTimeEntry" use:enhance>
 				<input type="hidden" name="id" bind:value={$form.id} />
-				<AlertDialog.Action type="submit" class={buttonVariants({ variant: 'destructive', class: "cursor-pointer" })}>
+				<AlertDialog.Action
+					type="submit"
+					class={buttonVariants({ variant: 'destructive', class: 'cursor-pointer' })}
+				>
 					Slet
 					{#if $delayed}
 						<LoaderCircle class="animate-spin" />

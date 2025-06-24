@@ -265,6 +265,45 @@ func initDocumentation(config config) *apiduck.Documentation {
 			}),
 		)
 
+	meResource.Put("/v1/me/time_entries/{id}", "Opdater en tidsregistrering", "Opdater en tidsregistrering").
+		Security("(bearer-token-for-users)").
+		PathParams(
+		apiduck.PathParam("id", "Tidsregistrerings id").Example(2),
+		).
+		Body(
+			apiduck.JSONBody(time_entries.UpdateTimeEntryInput{}).Example(time_entries.UpdateTimeEntryInput{
+				Duration:    types.Duration{Duration: 3*time.Hour + 40*time.Minute},
+				Description: "Ny feature implementeret + unit tests",
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusCreated, struct {
+				TimeEntry time_entries.TimeEntry `json:"timeEntry"`
+			}{}).Example(map[string]any{
+				"timeEntry": time_entries.TimeEntry{
+					Id:          2,
+					CategoryId:  42,
+					Category:    "Ny app idé",
+					UserId:      32,
+					Date:        time.Now().Format(time.DateOnly),
+					Duration:    types.Duration{Duration: 3*time.Hour + 40*time.Minute},
+					Description: "Ny feature implementeret + unit tests",
+				},
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusBadRequest, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeBadRequest,
+				Error: "invalid body",
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusInternalServerError, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeInternal,
+				Error: "something went wrong",
+			}),
+		)
+
 	meResource.Delete("/v1/me/time_entries/{id}", "Slet en tidsregistrering", "Slet en tidsregistrering").
 		Security("(bearer-token-for-users)").
 		PathParams(

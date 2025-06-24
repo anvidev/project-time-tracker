@@ -19,6 +19,11 @@ export interface RegisterTimeEntryInput {
 	description?: string;
 }
 
+export interface UpdateTimeEntryInput {
+	duration: Duration;
+	description: string;
+}
+
 export interface SummaryDay {
 	date: string;
 	totalHours: Duration;
@@ -46,9 +51,9 @@ export const monthMap: Record<Month, number> = {
 	october: 10,
 	november: 11,
 	december: 12
-}
+};
 
-export const months: Month[] = Object.keys(monthMap) as Month[]
+export const months: Month[] = Object.keys(monthMap) as Month[];
 
 export type Month =
 	| 'january'

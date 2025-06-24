@@ -37,7 +37,6 @@ type RegisterTimeEntryInput struct {
 }
 
 type UpdateTimeEntryInput struct {
-	EntryId     int64          `json:"entryId"`
 	Duration    types.Duration `json:"duration"`
 	Description string         `json:"description"`
 }

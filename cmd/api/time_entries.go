@@ -82,6 +82,12 @@ func (api *api) entriesRegisterTime(w http.ResponseWriter, r *http.Request) {
 func (api *api) entriesUpdateTime(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
 
+	entryId, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
 	var body time_entries.UpdateTimeEntryInput
 
 	if err := api.readJSON(w, r, &body); err != nil {
@@ -89,7 +95,7 @@ func (api *api) entriesUpdateTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timeEntry, err := api.store.TimeEntries.Update(r.Context(), userId, body)
+	timeEntry, err := api.store.TimeEntries.Update(r.Context(), userId, entryId, body)
 	if err != nil {
 		api.internalServerError(w, r, err)
 		return

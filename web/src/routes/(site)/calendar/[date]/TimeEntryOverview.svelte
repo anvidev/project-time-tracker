@@ -8,8 +8,7 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import DeleteEntryModal from './DeleteEntryModal.svelte';
+	import TimeEntryCard from './TimeEntryCard.svelte';
 
 	const {
 		daySummary,
@@ -48,20 +47,7 @@
 		</CardHeader>
 		<CardContent>
 			{#each daySummary.timeEntries as entry (entry.id)}
-				<div class="bg-muted mb-2 flex items-center justify-between rounded-lg border p-2">
-					<div>
-						<p class="font-semibold tracking-tight">{entry.category}</p>
-						<p class="text-muted-foreground text-sm">
-							{maxFractionDigits((entry.duration / daySummary.totalHours) * 100, 2)}% af total
-						</p>
-					</div>
-					<div class="flex gap-2">
-						<Badge class="bg-background px-3 py-2" variant="outline">
-							{(entry.duration / Hour).toFixed(2)}t
-						</Badge>
-						<DeleteEntryModal id={entry.id} />
-					</div>
-				</div>
+				<TimeEntryCard {entry} maxHours={daySummary.maxHours} />
 			{/each}
 		</CardContent>
 	</Card>
