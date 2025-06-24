@@ -9,9 +9,9 @@ import type {
 	SummaryMonth,
 	SummaryMonthDTO,
 	TimeEntry,
-    UpdateTimeEntryInput
+	UpdateTimeEntryInput
 } from './types';
-import { Hour, parseDuration } from './utils';
+import { parseDuration } from './utils';
 
 type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -190,12 +190,12 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 				authToken: string
 			): Promise<ServiceResponse<TimeEntry>> {
 				const res = await fetch(`${baseUrl}/v1/me/time_entries/${id}`, {
-					method: "put",
+					method: 'put',
 					headers: {
 						Authorization: `Bearer ${authToken}`
 					},
-					body: JSON.stringify(data),
-				})
+					body: JSON.stringify(data)
+				});
 
 				if (res.ok) {
 					return {
@@ -269,14 +269,10 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 							.json()
 							.then((json) => json.summary as SummaryDayDTO)
 							.then((summary) => {
-								let maxHours = parseDuration(summary.maxHours) ?? 0;
-								if (maxHours == 0) {
-									maxHours = 7.5 * Hour;
-								}
 								return {
 									date: summary.date,
 									totalHours: parseDuration(summary.totalHours) ?? -1,
-									maxHours,
+									maxHours: parseDuration(summary.maxHours) ?? 0,
 									timeEntries: summary.timeEntries.map((e) => ({
 										...e,
 										duration: parseDuration(e.duration) ?? -1
@@ -317,14 +313,10 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 								totalHours: parseDuration(summary.totalHours) ?? -1,
 								maxHours: parseDuration(summary.maxHours) ?? -1,
 								days: summary.days.map((day) => {
-									let maxHours = parseDuration(day.maxHours) ?? 0;
-									if (maxHours == 0) {
-										maxHours = 7.5 * Hour;
-									}
 									return {
 										date: day.date,
 										totalHours: parseDuration(day.totalHours) ?? -1,
-										maxHours,
+										maxHours: parseDuration(day.maxHours) ?? 0,
 										timeEntries: day.timeEntries.map((e) => ({
 											...e,
 											duration: parseDuration(e.duration) ?? -1

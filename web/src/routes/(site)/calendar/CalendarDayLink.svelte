@@ -37,66 +37,61 @@
 	const commonStyles = 'flex w-full aspect-16/8 flex-col justify-between rounded-lg border p-2';
 
 	onMount(() => {
-		animatedProgress.target = progress > 0 || isFuture(day?.date ?? new Date()) ? progress : 100;
+		animatedProgress.target =
+			progress > 0 || isFuture(day?.date ?? new Date()) || day?.holliday || day?.isWeekend
+				? progress
+				: 100;
 		animatedBg.target = 10;
 	});
 </script>
 
 {#if day == undefined}
 	<div class={`bg-muted ${commonStyles}`}></div>
-{:else if day.holliday}
-	<div class={`bg-muted-foreground/30 bg-striped ${commonStyles}`}>
-		<p class="text-muted-foreground w-full space-x-2 text-sm font-semibold">
-			<span>{parseDate(day.date).day}</span>
-			<span>{day.dayName}</span>
-		</p>
-	</div>
-{:else if day.isWeekend}
-	<div class={`bg-striped bg-muted/25 ${commonStyles}`}>
-		<p class="text-muted-foreground w-full space-x-2 text-sm font-semibold">
-			<span>{parseDate(day.date).day}</span>
-		</p>
-	</div>
 {:else}
 	<a
 		href={`/calendar/${day.date}`}
-		class={`${commonStyles} transition-all hover:border-blue-800 hover:shadow-sm`}
+		class={`${commonStyles} transition-all hover:border-blue-800 hover:shadow-sm ${day.holliday ? 'bg-muted-foreground/30 bg-striped' : day.isWeekend ? 'bg-muted/25 bg-striped' : ''}`}
 	>
 		<div class="flex h-full justify-between">
-			<p class="text-muted-foreground w-full text-sm font-semibold">
-				{parseDate(day.date).day}
-			</p>
-			<div class="relative flex h-full justify-end gap-1">
-				{#if isPast(day.date)}
-					<p class={`text-muted-foreground text-center text-xs transition-all`}>
-						{maxFractionDigits(progress, 2)}%
-					</p>
+			<p class="text-muted-foreground w-full space-x-2 text-sm font-semibold">
+				<span>{parseDate(day.date).day}</span>
+				{#if day.holliday}
+					<span>{day.dayName}</span>
 				{/if}
-				<div class="relative aspect-[1/6] h-[100%] overflow-hidden rounded-[5px]">
-					<svg
-						class="absolute inset-0 h-full w-full"
-						viewBox="0 0 10 10"
-						preserveAspectRatio="none"
-					>
-						<rect
-							x="0"
-							y="0"
-							width="10"
-							height="10"
-							fill="currentColor"
-							class={`${getProgressBgColor()}`}
-						/>
-						<rect
-							x="0"
-							y={10 * (1 - animatedProgress.current / 100)}
-							width="10"
-							height={10 * (animatedProgress.current / 100)}
-							fill="currentColor"
-							class={`${getProgressColor()}`}
-						/>
-					</svg>
+			</p>
+			{#if !((day.holliday || day.isWeekend) && day.totalHours == 0)}
+				<div class="relative flex h-full justify-end gap-1">
+					{#if isPast(day.date) && !(day.isWeekend || day.holliday)}
+						<p class={`text-muted-foreground text-center text-xs transition-all`}>
+							{maxFractionDigits(progress, 2)}%
+						</p>
+					{/if}
+					<div class="relative aspect-[1/6] h-[100%] overflow-hidden rounded-[5px]">
+						<svg
+							class="absolute inset-0 h-full w-full"
+							viewBox="0 0 10 10"
+							preserveAspectRatio="none"
+						>
+							<rect
+								x="0"
+								y="0"
+								width="10"
+								height="10"
+								fill="currentColor"
+								class={`${getProgressBgColor()}`}
+							/>
+							<rect
+								x="0"
+								y={10 * (1 - animatedProgress.current / 100)}
+								width="10"
+								height={10 * (animatedProgress.current / 100)}
+								fill="currentColor"
+								class={`${getProgressColor()}`}
+							/>
+						</svg>
+					</div>
 				</div>
-			</div>
+			{/if}
 		</div>
 	</a>
 {/if}
