@@ -56,6 +56,41 @@ func (s *Store) Register(ctx context.Context, userId int64, input RegisterTimeEn
 	return &entry, nil
 }
 
+func (s *Store) Update(ctx context.Context, userId, id int64, input UpdateTimeEntryInput) (*TimeEntry, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		update time_entries 
+		set duration = ?, description = ?
+		where id = ? and user_id = ?
+		returning id, category_id, user_id, date, duration, description
+	`
+
+	var entry TimeEntry
+	err := s.db.QueryRowContext(
+		ctx,
+		stmt,
+		input.Duration,
+		input.Description,
+		id,
+		userId,
+	).Scan(
+		&entry.Id,
+		&entry.CategoryId,
+		&entry.UserId,
+		&entry.Date,
+		&entry.Duration,
+		&entry.Description,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &entry, nil
+}
+
 func (s *Store) SummaryDay(ctx context.Context, userId int64, date time.Time) (*SummaryDay, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
 	defer cancel()

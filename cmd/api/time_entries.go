@@ -79,6 +79,38 @@ func (api *api) entriesRegisterTime(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (api *api) entriesUpdateTime(w http.ResponseWriter, r *http.Request) {
+	userId, _ := getUserId(r.Context())
+
+	entryId, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
+	var body time_entries.UpdateTimeEntryInput
+
+	if err := api.readJSON(w, r, &body); err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
+	timeEntry, err := api.store.TimeEntries.Update(r.Context(), userId, entryId, body)
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	response := map[string]any{
+		"timeEntry": timeEntry,
+	}
+
+	if err := api.writeJSON(w, http.StatusCreated, response); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (api *api) entriesSummaryDay(w http.ResponseWriter, r *http.Request) {
 	userId, _ := getUserId(r.Context())
 

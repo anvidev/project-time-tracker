@@ -35,3 +35,8 @@ type RegisterTimeEntryInput struct {
 	Duration    types.Duration `json:"duration"`
 	Description string         `json:"description"`
 }
+
+type UpdateTimeEntryInput struct {
+	Duration    types.Duration `json:"duration"`
+	Description string         `json:"description"`
+}
