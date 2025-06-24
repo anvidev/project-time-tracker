@@ -17,13 +17,6 @@ services:
       SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT}
       SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
       SERVER_IDLE_TIMEOUT: ${SERVER_IDLE_TIMEOUT}
-    volumes:
-      - ./cmd:/app/cmd
-      - ./internal:/app/internal
-      - ./go.mod:/app/go.mod
-      - ./go.sum:/app/go.sum
-      - ./.air.toml:/app/.air.toml
-      - /app/tmp
 
   web:
     build:
@@ -36,4 +29,4 @@ services:
       ORIGIN: ${ORIGIN}
       API_BASE_URL: http://api:9090
     ports:
-      - 3001:3000
+      - 3032:3032
