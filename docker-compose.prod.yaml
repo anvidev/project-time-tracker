@@ -36,4 +36,4 @@ services:
       ORIGIN: ${ORIGIN}
       API_BASE_URL: http://api:9090
     ports:
-      - 3001:3000
+      - 3032:3032
