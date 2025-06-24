@@ -27,7 +27,7 @@ export const actions: Actions = {
 			return fail(500, { form, error: loginRes.error });
 		}
 
-		cookies.set('authToken', loginRes.data.token, { path: '/' });
+		cookies.set('authToken', loginRes.data.token, { path: '/', maxAge: (7 * 24 * 60 * 60) });
 
 		redirect(303, '/calendar');
 	}
