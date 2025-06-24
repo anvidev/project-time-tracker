@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -63,10 +62,15 @@ type api struct {
 	logger *slog.Logger
 	store  *store.Store
 	docs   *apiduck.Documentation
+	cron   gocron.Scheduler
 }
 
 func (api *api) Run() error {
 	mux := api.handler()
+
+	if err := api.initCronScheduler(); err != nil {
+		api.logger.Error("failed to init cron scheduler")
+	}
 
 	srv := &http.Server{
 		Addr:         api.config.server.addr,
@@ -75,24 +79,6 @@ func (api *api) Run() error {
 		IdleTimeout:  api.config.server.idleTimeout,
 		Handler:      mux,
 	}
-
-	localTz, err := time.LoadLocation("Europe/Berlin")
-	if err != nil {
-		return err
-	}
-	cronScheduler, err := gocron.NewScheduler(gocron.WithLocation(localTz))
-	if err != nil {
-		return err
-	}
-
-	_, err = cronScheduler.NewJob(gocron.DailyJob(1, gocron.NewAtTimes(gocron.NewAtTime(13, 29, 0))), gocron.NewTask(func() {
-		fmt.Println("cron job ran")
-	}))
-	if err != nil {
-		return err
-	}
-
-	cronScheduler.Start()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -104,13 +90,16 @@ func (api *api) Run() error {
 		}
 	}()
 
+	api.createCronJobs()
+	go api.cron.Start()
+
 	<-quit
 	api.logger.Info("server shutting down")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	_ = cronScheduler.Shutdown()
+	_ = api.cron.Shutdown()
 
 	return srv.Shutdown(shutdownCtx)
 }
