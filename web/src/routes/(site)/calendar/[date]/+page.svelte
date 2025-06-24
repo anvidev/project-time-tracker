@@ -7,6 +7,9 @@
 	import ProgressCard from './ProgressCard.svelte';
 	import TimeEntryForm from './TimeEntryForm.svelte';
 	import TimeEntryOverview from './TimeEntryOverview.svelte';
+	import HourPercentSwitch from './HourPercentSwitch.svelte';
+	import { localStore } from '$lib/stores';
+	import { Hour } from '$lib/utils';
 
 	let { data }: PageProps = $props();
 
@@ -31,6 +34,8 @@
 	const dateFormatter = new DateFormatter('da-DK', { dateStyle: 'long' });
 
 	const formattedDate = $derived(dateFormatter.format(new Date(daySummary.date)));
+
+	let usePercentStore = localStore('usePercent', false);
 </script>
 
 <div
@@ -41,12 +46,23 @@
 		Tilbage
 	</Button>
 	<p class="w-full text-xl font-semibold tracking-tight">Tidsregistrering d. {formattedDate}</p>
+	<div class="absolute top-1/2 right-4 -translate-y-1/2">
+		<HourPercentSwitch
+			bind:value={$usePercentStore}
+			onActiveChange={(active) => usePercentStore.set(active == 'right')}
+		/>
+	</div>
 </div>
 
 <div class="grid w-full grid-cols-2 gap-6">
 	<ProgressCard {daySummary} />
 
-	<TimeEntryForm formData={data.createForm} categories={data.categories} />
+	<TimeEntryForm
+		maxHours={daySummary.maxHours / Hour}
+		formData={data.createForm}
+		categories={data.categories}
+		usePercent={$usePercentStore}
+	/>
 
-	<TimeEntryOverview {daySummary} {formattedDate} />
+	<TimeEntryOverview {daySummary} {formattedDate} usePercent={$usePercentStore} />
 </div>

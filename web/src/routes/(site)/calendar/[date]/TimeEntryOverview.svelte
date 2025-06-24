@@ -12,13 +12,15 @@
 
 	const {
 		daySummary,
-		formattedDate
+		formattedDate,
+		usePercent
 	}: {
 		daySummary: SummaryDay;
 		formattedDate: string;
+		usePercent: boolean;
 	} = $props();
 
-	const { timeEntries, totalHours: totalHoursProp, maxHours: maxHoursProp } = $derived(daySummary)
+	const { timeEntries, totalHours: totalHoursProp, maxHours: maxHoursProp } = $derived(daySummary);
 
 	const totalHours = $derived.by(() => {
 		if (totalHoursProp == 0) {
@@ -49,7 +51,7 @@
 		</CardHeader>
 		<CardContent>
 			{#each timeEntries as entry (entry.id)}
-				<TimeEntryCard {entry} maxHours={daySummary.maxHours} />
+				<TimeEntryCard {entry} {usePercent} maxHours={daySummary.maxHours} />
 			{/each}
 		</CardContent>
 	</Card>

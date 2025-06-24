@@ -14,12 +14,17 @@
 	import { Button } from '$lib/components/ui/button';
 	import type { Category } from '$lib/types';
 	import { LoaderCircle } from '@lucide/svelte';
+	import { maxFractionDigits } from '$lib/utils';
 
 	const {
 		formData,
-		categories
+		categories,
+		usePercent,
+		maxHours
 	}: {
 		categories: Category[];
+		usePercent: boolean;
+		maxHours: number;
 		formData: SuperValidated<
 			{
 				categoryId: number;
@@ -37,10 +42,12 @@
 		>;
 	} = $props();
 
+	let percentState = $state(0);
+
 	const { form, constraints, enhance, delayed } = superForm(formData, {
 		dataType: 'json',
 		delayMs: 150,
-		timeoutMs: 8000,
+		timeoutMs: 8000
 	});
 
 	let categoryMap = $derived.by(() => {
@@ -97,15 +104,34 @@
 				</div>
 
 				<div class="grid gap-1">
-					<Label class="gap-[2px]" for="duration">Timer<span class="text-red-700">*</span></Label>
-					<Input
-						name="duration"
-						bind:value={$form.durationHours}
-						type="number"
-						step="0.01"
-						placeholder="Indtast antal timer"
-						{...$constraints.durationHours}
-					/>
+					<Label class="gap-[2px]" for="duration">
+						{#if usePercent}
+							Procent
+						{:else}
+							Timer
+						{/if}
+						<span class="text-red-700">*</span></Label
+					>
+					{#if usePercent}
+						<Input
+							name="duration"
+							bind:value={percentState}
+							type="number"
+							step="0.1"
+							placeholder="Indtast procent"
+							oninput={() =>
+								($form.durationHours = maxFractionDigits(maxHours * (percentState / 100), 2))}
+						/>
+					{:else}
+						<Input
+							name="duration"
+							bind:value={$form.durationHours}
+							type="number"
+							step="0.01"
+							placeholder="Indtast antal timer"
+							{...$constraints.durationHours}
+						/>
+					{/if}
 				</div>
 
 				<div class="grid gap-1">
@@ -121,7 +147,9 @@
 
 			<Button type="submit" class="mt-2 cursor-pointer">
 				Opret
-				{#if $delayed} <LoaderCircle class="animate-spin" /> {/if}
+				{#if $delayed}
+					<LoaderCircle class="animate-spin" />
+				{/if}
 			</Button>
 		</form>
 	</CardContent>

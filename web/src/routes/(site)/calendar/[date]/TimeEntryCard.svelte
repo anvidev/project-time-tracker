@@ -8,25 +8,33 @@
 	import { Input } from '$lib/components/ui/input';
 	import { superForm } from 'sveltekit-superforms';
 
-	const { entry, maxHours }: { entry: TimeEntry; maxHours: number } = $props();
+	const {
+		entry,
+		maxHours,
+		usePercent
+	}: { entry: TimeEntry; maxHours: number; usePercent: boolean } = $props();
 
 	let editable = $state(false);
+	let percentState = $state(maxFractionDigits((entry.duration / maxHours) * 100, 1));
 
 	//const formData = $derived.by(() => ());
 
-	const { form, enhance } = superForm({
-		id: entry.id,
-		durationHours: entry.duration / Hour,
-		description: entry.description
-	}, {
-		dataType: 'json',
-		onUpdated: ({ form: updatedForm }) => {
-			$form.durationHours = updatedForm.data.durationHours
-			$form.description = updatedForm.data.description
+	const { form, enhance } = superForm(
+		{
+			id: entry.id,
+			durationHours: entry.duration / Hour,
+			description: entry.description
+		},
+		{
+			dataType: 'json',
+			onUpdated: ({ form: updatedForm }) => {
+				$form.durationHours = updatedForm.data.durationHours;
+				$form.description = updatedForm.data.description;
 
-			editable = false;
+				editable = false;
+			}
 		}
-	});
+	);
 </script>
 
 <div class="bg-muted mb-2 flex items-center justify-between rounded-lg border p-2">
@@ -38,9 +46,13 @@
 	</div>
 	{#if !editable}
 		<div class="grid grid-cols-[58px_58px_36px_36px] gap-2">
-			<Badge class="bg-background w-full px-3 py-2" variant="outline">
-				{maxFractionDigits((entry.duration / maxHours) * 100, 2)}%
-			</Badge>
+			{#if entry.duration > 0 && maxHours > 0}
+				<Badge class="bg-background w-full px-3 py-2" variant="outline">
+					{maxFractionDigits((entry.duration / maxHours) * 100, 2)}%
+				</Badge>
+			{:else}
+				<div></div>
+			{/if}
 			<Badge class="bg-background w-full px-3 py-2" variant="outline">
 				{(entry.duration / Hour).toFixed(2)}t
 			</Badge>
@@ -62,20 +74,42 @@
 			use:enhance
 		>
 			<Input type="hidden" bind:value={$form.description} />
-			<div class="relative col-span-2 col-start-1">
-				<Input
-					type="number"
-					step="0.01"
-					inputmode="numeric"
-					class="input-arrows-none w-full"
-					bind:value={$form.durationHours}
-				/>
-				<span
-					class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
-				>
-					t
-				</span>
-			</div>
+			{#if usePercent}
+				<div class="relative col-span-2 col-start-1">
+					<Input
+						type="number"
+						step="0.1"
+						inputmode="numeric"
+						class="input-arrows-none w-full"
+						bind:value={percentState}
+						oninput={() =>
+							($form.durationHours = maxFractionDigits(
+								(maxHours / Hour) * (percentState / 100),
+								2
+							))}
+					/>
+					<span
+						class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
+					>
+						%
+					</span>
+				</div>
+			{:else}
+				<div class="relative col-span-2 col-start-1">
+					<Input
+						type="number"
+						step="0.01"
+						inputmode="numeric"
+						class="input-arrows-none w-full"
+						bind:value={$form.durationHours}
+					/>
+					<span
+						class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
+					>
+						t
+					</span>
+				</div>
+			{/if}
 			<Button
 				type="submit"
 				class="cursor-pointer text-green-600 hover:text-green-600"

@@ -5,10 +5,6 @@
 
 	const { daySummary }: { daySummary: SummaryDay } = $props();
 
-	const completedPercentage = $derived(
-		maxFractionDigits((daySummary.totalHours / daySummary.maxHours) * 100, 2)
-	);
-
 	const averageTime = $derived.by(() => {
 		if (daySummary.totalHours == 0 || daySummary.timeEntries.length == 0) {
 			return 0;
@@ -17,15 +13,27 @@
 		return maxFractionDigits(daySummary.totalHours / Hour / daySummary.timeEntries.length, 2);
 	});
 
-	const totalHours = $derived(maxFractionDigits(daySummary.totalHours / Hour, 1));
-	const maxHours = $derived(maxFractionDigits(daySummary.maxHours / Hour, 1));
+	const totalHours = $derived(
+		daySummary.totalHours > 0.0 ? maxFractionDigits(daySummary.totalHours / Hour, 1) : 0
+	);
+	const maxHours = $derived(
+		daySummary.maxHours > 0.0 ? maxFractionDigits(daySummary.maxHours / Hour, 1) : 0
+	);
+
+	const completedPercentage = $derived(
+		totalHours < 0.1 || maxHours < 0.1 ? 0 : maxFractionDigits((totalHours / maxHours) * 100, 2)
+	);
 
 	const remainingHours = $derived(
-		maxFractionDigits(Math.max((daySummary.maxHours - daySummary.totalHours) / Hour, 0), 1)
+		totalHours < 0.1 || maxHours < 0.1
+			? 0
+			: maxFractionDigits(Math.max((maxHours - totalHours) / Hour, 0), 1)
 	);
 
 	const progressPercentage = $derived(
-		maxFractionDigits(Math.min((daySummary.totalHours / daySummary.maxHours) * 100, 100), 2)
+		totalHours < 0.1 || maxHours < 0.1
+			? 0
+			: maxFractionDigits(Math.min((totalHours / maxHours) * 100, 100), 2)
 	);
 
 	const getProgressColor = () => {

@@ -21,7 +21,7 @@ const updateTimeEntrySchema = z.object({
 });
 
 const deleteTimeEntrySchema = z.object({
-	id: z.coerce.number(),
+	id: z.coerce.number()
 });
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -57,7 +57,7 @@ export const actions: Actions = {
 
 		const data = {
 			date: form.data.date,
-			duration: form.data.durationHours * Hour,
+			duration: Math.round(form.data.durationHours * Hour),
 			categoryId: form.data.categoryId,
 			description: form.data.description
 		};
@@ -77,8 +77,8 @@ export const actions: Actions = {
 		}
 
 		const data: UpdateTimeEntryInput = {
-			duration: form.data.durationHours * Hour,
-			description: form.data.description ?? "",
+			duration: Math.round(form.data.durationHours * Hour),
+			description: form.data.description ?? ''
 		};
 
 		const res = await locals.apiService.updateTimeEntry(form.data.id, data, locals.authToken);
@@ -95,7 +95,7 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		const entryId = form.data.id
+		const entryId = form.data.id;
 
 		const res = await locals.apiService.deleteTimeEntry(entryId, locals.authToken);
 
