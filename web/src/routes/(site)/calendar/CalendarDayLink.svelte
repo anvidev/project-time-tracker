@@ -19,6 +19,14 @@
 		day != undefined ? Math.min((day.totalHours / day.maxHours) * 100, 100) : 0
 	);
 
+	const progressStr = $derived.by(() => {
+		if (day == undefined || day.totalHours == 0 || day.maxHours == 0) {
+			return '0%';
+		}
+
+		return `${maxFractionDigits((day.totalHours / day.maxHours) * 100, 2)}%`;
+	});
+
 	const animatedBg = new Tween(0, { delay: 100, duration: 1000, easing: cubicOut });
 	const animatedProgress = new Tween(0, { delay: 100, duration: 1000, easing: cubicOut });
 
@@ -63,7 +71,7 @@
 				<div class="relative flex h-full justify-end gap-1">
 					{#if isPast(day.date) && !(day.isWeekend || day.holliday)}
 						<p class={`text-muted-foreground text-center text-xs transition-all`}>
-							{maxFractionDigits(progress, 2)}%
+							{progressStr}
 						</p>
 					{/if}
 					<div class="relative aspect-[1/6] h-[100%] overflow-hidden rounded-[5px]">
