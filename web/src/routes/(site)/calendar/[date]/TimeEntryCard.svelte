@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import type { TimeEntry } from '$lib/types';
 	import { Hour, maxFractionDigits, toDurationString } from '$lib/utils';
-	import { Check, Pencil, X } from '@lucide/svelte';
+	import { Check, Loader2, Pencil, X } from '@lucide/svelte';
 	import DeleteEntryModal from './DeleteEntryModal.svelte';
 	import { Input } from '$lib/components/ui/input';
 	import { superForm } from 'sveltekit-superforms';
@@ -29,8 +29,10 @@
 		description: entry.description
 	};
 
-	const { form, enhance } = superForm(formData, {
+	const { form, enhance, submitting, delayed } = superForm(formData, {
 		dataType: 'json',
+		delayMs: 150,
+		timeoutMs: 8000,
 		onUpdated: ({ form: updatedForm }) => {
 			$form.durationHours = updatedForm.data.durationHours;
 			$form.description = updatedForm.data.description;
@@ -73,7 +75,7 @@
 		<form
 			method="POST"
 			action="?/updateTimeEntry"
-			class="grid grid-cols-[58px_58px_36px_36px] gap-2"
+			class="grid grid-cols-[58px_58px_calc(var(--spacing)_*_9)_calc(var(--spacing)_*_9)] gap-2"
 			use:enhance
 		>
 			<Input type="hidden" bind:value={$form.description} />
@@ -113,8 +115,13 @@
 				class="cursor-pointer text-green-600 hover:text-green-600"
 				variant="outline"
 				size="icon"
+				disabled={$submitting}
 			>
-				<Check class="size-4" />
+				{#if $delayed}
+					<Loader2 class="size-4 animate-spin" />
+				{:else}
+					<Check class="size-4" />
+				{/if}
 			</Button>
 			<Button
 				type="button"
@@ -122,6 +129,7 @@
 				variant="outline"
 				size="icon"
 				onclick={() => (editable = false)}
+				disabled={$submitting}
 			>
 				<X class="size-4" />
 			</Button>
