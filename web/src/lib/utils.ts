@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { Duration } from "./types";
+import type { Duration, DurationString, GoDurationString } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -37,6 +37,35 @@ const unitMap = new Map<string, number>([
 	["m",  Minute],
 	["h",  Hour],
 ])
+
+export function toDurationString(d: Duration): DurationString {
+	if (d == 0) return "0t"
+
+	const hours = Math.floor(d / Hour)
+	const minutes = Math.floor((d - hours * Hour) / Minute)
+
+	return `${hours}t ${minutes}m`
+}
+
+export function durationStringToGoDurationString(str: DurationString): GoDurationString {
+	if (str == '0t') {
+		return '0s'
+	}
+
+	const replaced = str.replace(' ', '').replace('t', 'h')
+
+	return `${replaced as `${number}h${number}m`}0s`
+}
+
+export function toGoDurationString(d: Duration): GoDurationString {
+	if (d == 0) return "0s"
+
+	const hours = Math.floor(d / Hour)
+	const minutes = Math.floor((d - hours * Hour) / Minute)
+	const seconds = Math.floor((d - (hours * Hour + minutes * Minute)) / Second)
+
+	return `${hours}h${minutes}m${seconds}s`
+}
 
 // This is a port of golangs time.ParseDuration. 
 // Dont ask me how this works, since i just ported it.

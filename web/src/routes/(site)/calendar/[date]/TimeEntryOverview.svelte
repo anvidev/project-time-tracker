@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SummaryDay } from '$lib/types';
-	import { Hour, maxFractionDigits } from '$lib/utils';
+	import { Hour, maxFractionDigits, toDurationString } from '$lib/utils';
 	import {
 		Card,
 		CardContent,
@@ -20,23 +20,7 @@
 		usePercent: boolean;
 	} = $props();
 
-	const { timeEntries, totalHours: totalHoursProp, maxHours: maxHoursProp } = $derived(daySummary);
-
-	const totalHours = $derived.by(() => {
-		if (totalHoursProp == 0) {
-			return 0;
-		}
-
-		return maxFractionDigits(totalHoursProp / Hour, 2);
-	});
-
-	const maxHours = $derived.by(() => {
-		if (maxHoursProp == 0) {
-			return 0;
-		}
-
-		return maxFractionDigits(maxHoursProp / Hour, 2);
-	});
+	const { timeEntries, totalHours, maxHours } = $derived(daySummary);
 </script>
 
 {#if timeEntries.length > 0}
@@ -46,7 +30,7 @@
 				Registreringer d. {formattedDate}
 			</CardTitle>
 			<CardDescription>
-				{totalHours} af {maxHours} timer registreret
+				{toDurationString(totalHours)} af {toDurationString(maxHours)} registreret
 			</CardDescription>
 		</CardHeader>
 		<CardContent>

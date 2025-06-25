@@ -2,7 +2,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import type { TimeEntry } from '$lib/types';
-	import { Hour, maxFractionDigits } from '$lib/utils';
+	import { Hour, maxFractionDigits, toDurationString } from '$lib/utils';
 	import { Check, Pencil, X } from '@lucide/svelte';
 	import DeleteEntryModal from './DeleteEntryModal.svelte';
 	import { Input } from '$lib/components/ui/input';
@@ -19,22 +19,25 @@
 
 	//const formData = $derived.by(() => ());
 
-	const { form, enhance } = superForm(
-		{
-			id: entry.id,
-			durationHours: entry.duration / Hour,
-			description: entry.description
-		},
-		{
-			dataType: 'json',
-			onUpdated: ({ form: updatedForm }) => {
-				$form.durationHours = updatedForm.data.durationHours;
-				$form.description = updatedForm.data.description;
+	const formData: {
+		id: number;
+		durationHours: number | string;
+		description: string;
+	} = {
+		id: entry.id,
+		durationHours: toDurationString(entry.duration),
+		description: entry.description
+	};
 
-				editable = false;
-			}
+	const { form, enhance } = superForm(formData, {
+		dataType: 'json',
+		onUpdated: ({ form: updatedForm }) => {
+			$form.durationHours = updatedForm.data.durationHours;
+			$form.description = updatedForm.data.description;
+
+			editable = false;
 		}
-	);
+	});
 </script>
 
 <div class="bg-muted mb-2 flex items-center justify-between rounded-lg border p-2">
@@ -54,7 +57,7 @@
 				<div></div>
 			{/if}
 			<Badge class="bg-background w-full px-3 py-2" variant="outline">
-				{(entry.duration / Hour).toFixed(2)}t
+				{toDurationString(entry.duration)}
 			</Badge>
 			<Button
 				class="cursor-pointer"
@@ -82,11 +85,7 @@
 						inputmode="numeric"
 						class="input-arrows-none w-full"
 						bind:value={percentState}
-						oninput={() =>
-							($form.durationHours = maxFractionDigits(
-								(maxHours / Hour) * (percentState / 100),
-								2
-							))}
+						oninput={() => ($form.durationHours = (maxHours / Hour) * (percentState / 100))}
 					/>
 					<span
 						class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
@@ -97,11 +96,10 @@
 			{:else}
 				<div class="relative col-span-2 col-start-1">
 					<Input
-						type="number"
-						step="0.01"
-						inputmode="numeric"
+						type="text"
 						class="input-arrows-none w-full"
 						bind:value={$form.durationHours}
+						pattern="(?:\d+|\d+t \d+m|0t)"
 					/>
 					<span
 						class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"

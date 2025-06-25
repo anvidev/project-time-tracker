@@ -29,7 +29,7 @@
 {/snippet}
 
 <button
-	class="relative grid h-[36px] w-[72px] cursor-pointer grid-cols-2 items-center rounded-xl border shadow-sm outline-none"
+	class="relative grid h-[36px] w-[72px] cursor-pointer grid-cols-2 items-center rounded-full border shadow-sm outline-none"
 	onclick={toggle}
 >
 	<span

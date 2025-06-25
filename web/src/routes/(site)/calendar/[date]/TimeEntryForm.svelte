@@ -14,7 +14,6 @@
 	import { Button } from '$lib/components/ui/button';
 	import type { Category } from '$lib/types';
 	import { LoaderCircle } from '@lucide/svelte';
-	import { maxFractionDigits } from '$lib/utils';
 
 	const {
 		formData,
@@ -29,14 +28,14 @@
 			{
 				categoryId: number;
 				date: string;
-				durationHours: number;
+				durationHours: number | string;
 				description?: string | undefined;
 			},
 			any,
 			{
 				categoryId: number;
 				date: string;
-				durationHours: number;
+				durationHours: number | string;
 				description?: string | undefined;
 			}
 		>;
@@ -47,7 +46,8 @@
 	const { form, constraints, enhance, delayed } = superForm(formData, {
 		dataType: 'json',
 		delayMs: 150,
-		timeoutMs: 8000
+		timeoutMs: 8000,
+		onUpdated: () => (percentState = 0)
 	});
 
 	let categoryMap = $derived.by(() => {
@@ -114,22 +114,23 @@
 					>
 					{#if usePercent}
 						<Input
+							class="input-arrows-none"
 							name="duration"
 							bind:value={percentState}
 							type="number"
 							step="0.1"
 							placeholder="Indtast procent"
-							oninput={() =>
-								($form.durationHours = maxFractionDigits(maxHours * (percentState / 100), 2))}
+							oninput={() => ($form.durationHours = maxHours * (percentState / 100))}
 						/>
 					{:else}
 						<Input
+							class="input-arrows-none"
 							name="duration"
 							bind:value={$form.durationHours}
-							type="number"
-							step="0.01"
+							type="text"
 							placeholder="Indtast antal timer"
 							{...$constraints.durationHours}
+							pattern="(?:\d+|\d+t \d+m|0t)"
 						/>
 					{/if}
 				</div>

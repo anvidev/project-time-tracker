@@ -55,7 +55,7 @@
 </div>
 
 <div class="grid w-full grid-cols-2 gap-6">
-	<ProgressCard {daySummary} />
+	<ProgressCard {daySummary} usePercent={$usePercentStore} />
 
 	<TimeEntryForm
 		maxHours={daySummary.maxHours / Hour}

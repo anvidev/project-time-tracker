@@ -3,20 +3,24 @@ import type { Actions, PageServerLoad } from './$types';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { error } from '@sveltejs/kit';
-import { Hour } from '$lib/utils';
+import { durationStringToGoDurationString, Hour, toGoDurationString } from '$lib/utils';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
-import type { UpdateTimeEntryInput } from '$lib/types';
+import type { DurationString, UpdateTimeEntryInput } from '$lib/types';
 
 const createTimeEntrySchema = z.object({
 	categoryId: z.coerce.number(),
 	date: z.string(),
-	durationHours: z.coerce.number(),
+	durationHours: z
+		.union([z.coerce.number(), z.string().regex(/^(?:\d+|\d+t \d+m|0t)$/)])
+		.default(0),
 	description: z.string().optional()
 });
 
 const updateTimeEntrySchema = z.object({
 	id: z.coerce.number(),
-	durationHours: z.coerce.number(),
+	durationHours: z
+		.union([z.coerce.number(), z.string().regex(/^(?:\d+|\d+t \d+m|0t)$/)])
+		.default(0),
 	description: z.string().optional()
 });
 
@@ -55,9 +59,14 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
+		const duration =
+			typeof form.data.durationHours == 'number'
+				? toGoDurationString(form.data.durationHours * Hour)
+				: durationStringToGoDurationString(form.data.durationHours as DurationString);
+
 		const data = {
 			date: form.data.date,
-			duration: Math.round(form.data.durationHours * Hour),
+			duration,
 			categoryId: form.data.categoryId,
 			description: form.data.description
 		};
@@ -76,8 +85,13 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
+		const duration =
+			typeof form.data.durationHours == 'number'
+				? toGoDurationString(form.data.durationHours * Hour)
+				: durationStringToGoDurationString(form.data.durationHours as DurationString);
+
 		const data: UpdateTimeEntryInput = {
-			duration: Math.round(form.data.durationHours * Hour),
+			duration,
 			description: form.data.description ?? ''
 		};
 

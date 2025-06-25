@@ -15,12 +15,12 @@ export interface Category {
 export interface RegisterTimeEntryInput {
 	categoryId: number;
 	date: string;
-	duration: Duration;
+	duration: Duration | GoDurationString;
 	description?: string;
 }
 
 export interface UpdateTimeEntryInput {
-	duration: Duration;
+	duration: Duration | GoDurationString;
 	description: string;
 }
 
@@ -33,8 +33,8 @@ export interface SummaryDay {
 
 export interface SummaryDayDTO {
 	date: string;
-	totalHours: string;
-	maxHours: string;
+	totalHours: GoDurationString;
+	maxHours: GoDurationString;
 	timeEntries: TimeEntryDTO[];
 }
 
@@ -78,8 +78,8 @@ export interface SummaryMonth {
 
 export interface SummaryMonthDTO {
 	month: Month;
-	totalHours: string;
-	maxHours: string;
+	totalHours: GoDurationString;
+	maxHours: GoDurationString;
 	days: SummaryDayDTO[];
 }
 
@@ -99,11 +99,13 @@ export interface TimeEntryDTO {
 	category: string;
 	userId: number;
 	date: string;
-	duration: string;
+	duration: GoDurationString;
 	description: string;
 }
 
 export type Duration = number;
+export type DurationString = `${number}t ${number}m` | '0t';
+export type GoDurationString = `${number}h${number}m${number}s` | '0s';
 
 export interface Calendar {
 	days: Day[];

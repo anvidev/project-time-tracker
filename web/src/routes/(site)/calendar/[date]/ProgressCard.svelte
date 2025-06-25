@@ -1,16 +1,30 @@
 <script lang="ts">
 	import type { SummaryDay } from '$lib/types';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-	import { Hour, maxFractionDigits } from '$lib/utils';
+	import { Hour, maxFractionDigits, toDurationString } from '$lib/utils';
 
-	const { daySummary }: { daySummary: SummaryDay } = $props();
+	const { daySummary, usePercent }: { daySummary: SummaryDay; usePercent: boolean } = $props();
 
 	const averageTime = $derived.by(() => {
 		if (daySummary.totalHours == 0 || daySummary.timeEntries.length == 0) {
 			return 0;
 		}
 
-		return maxFractionDigits(daySummary.totalHours / Hour / daySummary.timeEntries.length, 2);
+		return maxFractionDigits(daySummary.totalHours / daySummary.timeEntries.length, 2);
+	});
+
+	const completedPercentage = $derived(
+		daySummary.totalHours < 0.1 || daySummary.maxHours < 0.1
+			? 0
+			: maxFractionDigits((daySummary.totalHours / daySummary.maxHours) * 100, 2)
+	);
+
+	const averagePercentage = $derived.by(() => {
+		if (daySummary.totalHours == 0 || daySummary.timeEntries.length == 0) {
+			return 0;
+		}
+
+		return maxFractionDigits(completedPercentage / daySummary.timeEntries.length, 2)
 	});
 
 	const totalHours = $derived(
@@ -20,14 +34,14 @@
 		daySummary.maxHours > 0.0 ? maxFractionDigits(daySummary.maxHours / Hour, 1) : 0
 	);
 
-	const completedPercentage = $derived(
-		totalHours < 0.1 || maxHours < 0.1 ? 0 : maxFractionDigits((totalHours / maxHours) * 100, 2)
-	);
+	const totalHoursStr = $derived(toDurationString(daySummary.totalHours));
+
+	const maxHoursStr = $derived(toDurationString(daySummary.maxHours));
 
 	const remainingHours = $derived(
-		totalHours < 0.1 || maxHours < 0.1
+		daySummary.totalHours < 0.1 || daySummary.maxHours < 0.1
 			? 0
-			: maxFractionDigits(Math.max((maxHours - totalHours) / Hour, 0), 1)
+			: Math.max(daySummary.maxHours - daySummary.totalHours, 0)
 	);
 
 	const progressPercentage = $derived(
@@ -76,14 +90,24 @@
 			</svg>
 
 			<div class="absolute inset-0 flex flex-col items-center justify-center">
-				<div class="text-3xl font-bold text-slate-800">
-					{totalHours}t
-				</div>
-				<div class="text-sm text-slate-500">
-					af {maxHours} timer
-				</div>
+				{#if usePercent}
+					<div class="text-3xl font-bold text-slate-800">
+						{completedPercentage}%
+					</div>
+				{:else}
+					<div class="text-3xl font-bold text-slate-800">
+						{totalHoursStr}
+					</div>
+					<div class="text-sm text-slate-500">
+						af {maxHoursStr}
+					</div>
+				{/if}
 				{#if remainingHours > 0}
-					<div class="mt-1 text-xs text-slate-400">Mangler {remainingHours}t</div>
+					<div class="mt-1 text-xs text-slate-400">
+						Mangler {usePercent
+							? `${100 - completedPercentage}%`
+							: toDurationString(remainingHours)}
+					</div>
 				{/if}
 			</div>
 		</div>
@@ -93,16 +117,30 @@
 				<p class="text-muted-foreground text-sm">Registreringer</p>
 			</div>
 			<div class="flex flex-col items-center justify-center">
-				<p class="text-lg font-semibold">
-					{completedPercentage}%
-				</p>
-				<p class="text-muted-foreground text-sm">Udførsel</p>
+				{#if usePercent}
+					<p class="text-lg font-semibold">
+						{totalHoursStr}
+					</p>
+					<p class="text-muted-foreground text-sm">Registreret</p>
+				{:else}
+					<p class="text-lg font-semibold">
+						{completedPercentage}%
+					</p>
+					<p class="text-muted-foreground text-sm">Udførsel</p>
+				{/if}
 			</div>
 			<div class="flex flex-col items-center justify-center">
-				<p class="text-lg font-semibold">
-					{averageTime}t
-				</p>
-				<p class="text-muted-foreground text-sm">Gns / Registrering</p>
+				{#if usePercent}
+					<p class="text-lg font-semibold">
+						{averagePercentage}%
+					</p>
+					<p class="text-muted-foreground text-sm">Gns / Registrering</p>
+				{:else}
+					<p class="text-lg font-semibold">
+						{toDurationString(averageTime)}
+					</p>
+					<p class="text-muted-foreground text-sm">Gns / Registrering</p>
+				{/if}
 			</div>
 		</div>
 	</CardContent>
