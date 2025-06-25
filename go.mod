@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/anvidev/apiduck v0.0.1
-	github.com/anvidev/goenv v0.1.1
+	github.com/anvidev/goenv v0.2.1
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-co-op/gocron/v2 v2.16.2
 	github.com/go-playground/validator/v10 v10.26.0

@@ -19,11 +19,11 @@ func ptr[T any](v T) *T {
 	return p
 }
 
-func initDocumentation(config config) *apiduck.Documentation {
+func initDocumentation(config Config) *apiduck.Documentation {
 	docs := apiduck.New(
 		"Tidsregistrering API",
 		"Internt værktøj til at dokumentere og overskue den tid der er brugt på projekter",
-		config.server.version,
+		config.Server.Version,
 		apiduck.WithContact(
 			"Skancode A/S",
 			"support@skancode.dk",
@@ -269,7 +269,7 @@ func initDocumentation(config config) *apiduck.Documentation {
 	meResource.Put("/v1/me/time_entries/{id}", "Opdater en tidsregistrering", "Opdater en tidsregistrering").
 		Security("(bearer-token-for-users)").
 		PathParams(
-		apiduck.PathParam("id", "Tidsregistrerings id").Example(2),
+			apiduck.PathParam("id", "Tidsregistrerings id").Example(2),
 		).
 		Body(
 			apiduck.JSONBody(time_entries.UpdateTimeEntryInput{}).Example(time_entries.UpdateTimeEntryInput{

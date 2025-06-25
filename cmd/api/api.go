@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/anvidev/apiduck"
+	"github.com/anvidev/goenv"
 	"github.com/anvidev/project-time-tracker/internal/database"
 	"github.com/anvidev/project-time-tracker/internal/mailer"
 	"github.com/anvidev/project-time-tracker/internal/store"
@@ -59,7 +61,7 @@ func (api *api) handler() http.Handler {
 }
 
 type api struct {
-	config config
+	config Config
 	logger *slog.Logger
 	store  *store.Store
 	docs   *apiduck.Documentation
@@ -73,10 +75,10 @@ func (api *api) Run() error {
 	mux := api.handler()
 
 	srv := &http.Server{
-		Addr:         api.config.server.addr,
-		ReadTimeout:  api.config.server.readTimeout,
-		WriteTimeout: api.config.server.writeTimeout,
-		IdleTimeout:  api.config.server.idleTimeout,
+		Addr:         api.config.Server.Addr,
+		ReadTimeout:  api.config.Server.ReadTimeout,
+		WriteTimeout: api.config.Server.WriteTimeout,
+		IdleTimeout:  api.config.Server.IdleTimeout,
 		Handler:      mux,
 	}
 
@@ -84,7 +86,7 @@ func (api *api) Run() error {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		api.logger.Info("server starting", "addr", api.config.server.addr, "env", api.config.server.env)
+		api.logger.Info("server starting", "addr", api.config.Server.Addr, "env", api.config.Server.Env)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			api.logger.Error("server failed to start", "error", err)
 		}
@@ -111,9 +113,16 @@ func (api *api) Run() error {
 
 func NewApiContext(ctx context.Context) (*api, error) {
 	logger := slog.Default()
-	config := loadConfig()
+
+	var config Config
+	if err := goenv.Struct(&config); err != nil {
+		logger.Error("error", "err", err.Error())
+		os.Exit(1)
+	}
+	fmt.Printf("config is: %+v\n", config)
+
 	docs := initDocumentation(config)
-	mailer := mailer.NewResendMailer(config.resend.apiKey, config.resend.from)
+	mails := mailer.NewResendMailer(config.Resend.ApiKey, config.Resend.From)
 
 	var cronInitialized bool
 	cron, err := initCronScheduler()
@@ -123,7 +132,7 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		cronInitialized = true
 	}
 
-	db, err := database.NewContext(ctx, config.database.url, config.database.token)
+	db, err := database.NewContext(ctx, config.Database.URL, config.Database.Token)
 	if err != nil {
 		logger.Error("database connection failed", "error", err)
 		return nil, err
@@ -136,7 +145,7 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		config: config,
 		store:  store,
 		docs:   docs,
-		mails:  mailer,
+		mails:  mails,
 
 		cronInitialized: cronInitialized,
 		cron:            cron,

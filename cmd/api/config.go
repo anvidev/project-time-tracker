@@ -2,52 +2,29 @@ package main
 
 import (
 	"time"
-
-	"github.com/anvidev/goenv"
 )
 
-type config struct {
-	server   serverConfig
-	database databaseConfig
-	resend   resendConfig
+type Config struct {
+	Server   ServerConfig
+	Database DatabaseConfig
+	Resend   ResendConfig
 }
 
-type serverConfig struct {
-	version      string
-	env          string
-	addr         string
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	idleTimeout  time.Duration
+type ServerConfig struct {
+	Version      string        `goenv:"SERVER_VERSION,default=v0.1.0"`
+	Env          string        `goenv:"SERVER_ENV,default=development"`
+	Addr         string        `goenv:"SERVER_ADDR,default=:9090"`
+	ReadTimeout  time.Duration `goenv:"SERVER_READ_TIMEOUT,default=10s"`
+	WriteTimeout time.Duration `goenv:"SERVER_WRITE_TIMEOUT,default=30s"`
+	IdleTimeout  time.Duration `goenv:"SERVER_IDLE_TIMEOUT,default=1m"`
 }
 
-type databaseConfig struct {
-	token string
-	url   string
+type DatabaseConfig struct {
+	Token string `goenv:"TURSO_AUTH_TOKEN,required"`
+	URL   string `goenv:"TURSO_DATABASE_URL,required"`
 }
 
-type resendConfig struct {
-	from   string // format: "name <email>"
-	apiKey string
-}
-
-func loadConfig() config {
-	return config{
-		server: serverConfig{
-			version:      goenv.String("SERVER_VERSION", "v0.1.0"),
-			env:          goenv.String("SERVER_ENV", "development"),
-			addr:         goenv.String("SERVER_ADDR", ":9090"),
-			readTimeout:  goenv.Duration("SERVER_READ_TIMEOUT", time.Second*10),
-			writeTimeout: goenv.Duration("SERVER_WRITE_TIMEOUT", time.Second*30),
-			idleTimeout:  goenv.Duration("SERVER_IDLE_TIMEOUT", time.Minute),
-		},
-		database: databaseConfig{
-			token: goenv.MustString("TURSO_AUTH_TOKEN"),
-			url:   goenv.MustString("TURSO_DATABASE_URL"),
-		},
-		resend: resendConfig{
-			from:   goenv.String("RESEND_FROM", "Tidsregistrering <noreply@nemunivers.app>"),
-			apiKey: goenv.String("RESEND_API_KEY", ""),
-		},
-	}
+type ResendConfig struct {
+	From   string `goenv:"RESEND_FROM,default=Tidsregistrering <noreply@nemunivers.app>"` // format: "name <email>"
+	ApiKey string `goenv:"RESEND_API_KEY,required"`
 }
