@@ -37,5 +37,6 @@ services:
     environment:
       API_BASE_URL: "http://api:9090"
     volumes:
+      - ./web/.svelte-kit:/app/.svelte-kit
       - ./web/src:/app/src
       - ./web/static:/app/static
