@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import type {
 	Calendar,
 	Category,
+	CategoryTree,
 	RegisterTimeEntryInput,
 	Session,
 	SummaryDay,
@@ -32,6 +33,7 @@ export type ApiService = {
 	register: (data: { name: string; email: string; password: string }) => Promise<ServiceResponse>;
 	logIn: (data: { email: string; password: string }) => Promise<ServiceResponse<Session>>;
 	getUserCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
+	getCategories: (authToken: string) => Promise<ServiceResponse<CategoryTree[]>>;
 	createTimeEntry: (
 		data: RegisterTimeEntryInput,
 		authToken: string
@@ -118,6 +120,41 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 			// CATEGORIES
 			getUserCategories: async function(authToken: string): Promise<ServiceResponse<Category[]>> {
 				const res = await fetch(`${baseUrl}/v1/me/categories`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json()).categories
+					};
+				}
+
+				if (res.headers.get('content-type')?.includes('application/json')) {
+					const body: {
+						error: string;
+						code: string;
+					} = await res.json();
+
+					return {
+						ok: false,
+						error: `${body.code}: ${body.error}`
+					};
+				} else {
+					const body = await res.text();
+
+					console.error(body);
+					return {
+						ok: false,
+						error: body
+					};
+				}
+			},
+
+			getCategories: async function(authToken: string): Promise<ServiceResponse<CategoryTree[]>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories/all`, {
 					headers: {
 						Authorization: `Bearer ${authToken}`
 					}

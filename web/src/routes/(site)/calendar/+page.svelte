@@ -4,7 +4,8 @@
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
 	import MonthPicker from './MonthPicker.svelte';
-	import { DateFormatter } from '@internationalized/date';
+	import { User } from '@lucide/svelte';
+	import { buttonVariants } from '$lib/components/ui/button';
 
 	const { data }: PageProps = $props();
 
@@ -19,15 +20,6 @@
 		Lørdag: 5,
 		Søndag: 6
 	};
-
-	const title = $derived.by(() => {
-		const dateFormatter = new DateFormatter('da-DK', {
-			month: 'long',
-			year: 'numeric'
-		});
-
-		return dateFormatter.format(date);
-	});
 
 	const daysWithCalendarInfo = $derived.by(() => {
 		if (summary.days.length < 28) {
@@ -68,9 +60,14 @@
 
 <Card.Root class="my-6 max-h-[90dvh] w-full">
 	<Card.Header>
-		<Card.Title class="capitalize">{title}</Card.Title>
+		<MonthPicker {date} />
 		<Card.Action>
-			<MonthPicker {date} />
+			<a
+				href="/me"
+				class={buttonVariants({ variant: 'outline', size: 'icon', class: 'cursor-pointer' })}
+			>
+				<User />
+			</a>
 		</Card.Action>
 	</Card.Header>
 	<Card.Content class="grid w-full grid-cols-7 gap-2">

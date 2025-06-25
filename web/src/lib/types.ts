@@ -12,6 +12,15 @@ export interface Category {
 	rootTitle: string;
 }
 
+export interface CategoryTree {
+	id: number;
+	parentId: any;
+	title: string;
+	isRetired: boolean;
+	isFollowed: boolean;
+	children: CategoryTree[];
+}
+
 export interface RegisterTimeEntryInput {
 	categoryId: number;
 	date: string;
