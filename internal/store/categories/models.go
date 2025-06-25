@@ -7,10 +7,19 @@ type Category struct {
 }
 
 type CategoryTree struct {
-	Id         int64          `json:"id"`
-	ParentId   *int64         `json:"parentId"`
-	Title      string         `json:"title"`
-	IsRetired  bool           `json:"isRetired"`
-	IsFollowed bool           `json:"isFollowed"`
+	Id         int64           `json:"id"`
+	ParentId   *int64          `json:"parentId"`
+	Title      string          `json:"title"`
+	IsRetired  bool            `json:"isRetired"`
+	IsFollowed bool            `json:"isFollowed"`
 	Children   []*CategoryTree `json:"children"`
+}
+
+type CreateCategoryInput struct {
+	Title    string `json:"title"`
+	ParentId *int64 `json:"parentId,omitempty"`
+}
+
+type UpdateCategoryInput struct {
+	Title string `json:"title"`
 }

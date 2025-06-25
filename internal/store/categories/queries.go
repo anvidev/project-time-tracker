@@ -2,6 +2,7 @@ package categories
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 )
@@ -10,6 +11,7 @@ var (
 	ErrAlreadyFollowed      = errors.New("already following category")
 	ErrNotFollowingCategory = errors.New("category is not followed")
 	ErrCategoryNotFollowed  = errors.New("category was not followed")
+	ErrCategoryNotToggled   = errors.New("category was not toggled")
 )
 
 func (s *Store) Leafs(ctx context.Context, userId int64) ([]Category, error) {
@@ -172,4 +174,77 @@ func (s *Store) Tree(ctx context.Context, userId int64) ([]*CategoryTree, error)
 	}
 
 	return tree, nil
+}
+
+func (s *Store) Create(ctx context.Context, input CreateCategoryInput) (*Category, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		insert into categories (title, parent_id)
+		values (?, ?)
+		returning id, coalesce((select title from categories where id = ?), '') as root_title
+	`
+
+	category := Category{Title: input.Title}
+	var rootTitle sql.NullString
+
+	err := s.db.
+		QueryRowContext(ctx, stmt, input.Title, input.ParentId, input.ParentId).
+		Scan(&category.Id, &rootTitle)
+	if err != nil {
+		return nil, err
+	}
+
+	category.RootTitle = rootTitle.String
+
+	return &category, nil
+}
+
+func (s *Store) Update(ctx context.Context, id int64, title string) (*Category, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		update categories c
+		set title = ?
+		where id = ? 
+		returning id, coalesce((select title from categories where id = c.parent_id), '') as root_title
+	`
+
+	category := Category{Title: title}
+	var rootTitle sql.NullString
+
+	err := s.db.QueryRowContext(ctx, stmt, title, id).Scan(&category.Id, &rootTitle)
+	if err != nil {
+		return nil, err
+	}
+
+	category.RootTitle = rootTitle.String
+
+	return &category, nil
+
+}
+
+func (s *Store) ToggleRetire(ctx context.Context, id int64) error {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `update categories set is_retired = not is_retired where id = ?`
+
+	result, err := s.db.ExecContext(ctx, stmt, id)
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return ErrCategoryNotToggled
+	}
+
+	return nil
 }
