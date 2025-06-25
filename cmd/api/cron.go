@@ -56,8 +56,7 @@ func (api *api) notifyOnEmptyDay() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	// yesterday := time.Now().AddDate(0, 0, -1)
-	yesterday := time.Date(2025, 6, 9, 0, 0, 0, 0, time.UTC)
+	yesterday := time.Now().AddDate(0, 0, -1)
 	if yesterday.Weekday() == 0 || yesterday.Weekday() == 6 {
 		// yesterday was saturday or sunday
 		return
