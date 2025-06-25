@@ -62,7 +62,7 @@ func (api *api) notifyOnEmptyDay() {
 		return
 	}
 
-	isHoliday, err := isDateDanishHoliday(yesterday)
+	isHoliday, err := isDanishHoliday(yesterday)
 	if err != nil {
 		api.logger.Warn("[CRON JOB] notifyOnEmptyDay - failed to fetch day info", "error", err)
 		return
@@ -90,7 +90,6 @@ func (api *api) notifyOnEmptyDay() {
 		}
 
 		if len(summary.TimeEntries) > 0 {
-			api.logger.Info(fmt.Sprintf("[CRON JOB] notifyOnEmptyDay - user %s has time entries", user.Email))
 			continue
 		}
 
@@ -106,12 +105,10 @@ func (api *api) notifyOnEmptyDay() {
 		if err != nil {
 			api.logger.Warn(fmt.Sprintf("[CRON JOB] notifyOnEmptyDay - failed to send email to %s", user.Email), "error", err)
 		}
-
-		api.logger.Info(fmt.Sprintf("[CRON JOB] notifyOnEmptyDay - sending email to %s", user.Email))
 	}
 }
 
-func isDateDanishHoliday(date time.Time) (bool, error) {
+func isDanishHoliday(date time.Time) (bool, error) {
 	url := fmt.Sprintf("https://api.kalendarium.dk/Dayinfo/%s", date.Format("02-01-2006"))
 
 	req, err := http.NewRequest("GET", url, nil)
