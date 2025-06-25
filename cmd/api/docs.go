@@ -32,7 +32,7 @@ func initDocumentation(config config) *apiduck.Documentation {
 	)
 
 	docs.AddServer("http://localhost:9090", "Development Server")
-	docs.AddServer("http://tid-api.anvi.dev", "Production Server")
+	docs.AddServer("https://tid-api.anvi.dev", "Production Server")
 
 	docs.AddSecurity(apiduck.BearerToken("(bearer-token-for-users)", "Brugere skal være logget ind for at få adgang til ressourcer med denne authentication"))
 

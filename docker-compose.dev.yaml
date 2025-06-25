@@ -17,6 +17,8 @@ services:
       SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT}
       SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
       SERVER_IDLE_TIMEOUT: ${SERVER_IDLE_TIMEOUT}
+
+      RESEND_API_KEY: ${RESEND_API_KEY}
     volumes:
       - ./cmd:/app/cmd
       - ./internal:/app/internal

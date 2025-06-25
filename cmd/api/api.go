@@ -11,6 +11,7 @@ import (
 
 	"github.com/anvidev/apiduck"
 	"github.com/anvidev/project-time-tracker/internal/database"
+	"github.com/anvidev/project-time-tracker/internal/mailer"
 	"github.com/anvidev/project-time-tracker/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -62,15 +63,14 @@ type api struct {
 	logger *slog.Logger
 	store  *store.Store
 	docs   *apiduck.Documentation
-	cron   gocron.Scheduler
+	mails  mailer.Mailer
+
+	cronInitialized bool
+	cron            gocron.Scheduler
 }
 
 func (api *api) Run() error {
 	mux := api.handler()
-
-	if err := api.initCronScheduler(); err != nil {
-		api.logger.Error("failed to init cron scheduler")
-	}
 
 	srv := &http.Server{
 		Addr:         api.config.server.addr,
@@ -90,8 +90,13 @@ func (api *api) Run() error {
 		}
 	}()
 
-	api.createCronJobs()
-	go api.cron.Start()
+	if api.cronInitialized {
+		if err := api.createCronJobs(); err != nil {
+			api.logger.Warn("creating cron jobs failed", "error", err)
+		} else {
+			go api.cron.Start()
+		}
+	}
 
 	<-quit
 	api.logger.Info("server shutting down")
@@ -108,6 +113,15 @@ func NewApiContext(ctx context.Context) (*api, error) {
 	logger := slog.Default()
 	config := loadConfig()
 	docs := initDocumentation(config)
+	mailer := mailer.NewResendMailer(config.resend.apiKey, config.resend.from)
+
+	var cronInitialized bool
+	cron, err := initCronScheduler()
+	if err != nil {
+		logger.Warn("cron scheduler initialization failed", "error", err)
+	} else {
+		cronInitialized = true
+	}
 
 	db, err := database.NewContext(ctx, config.database.url, config.database.token)
 	if err != nil {
@@ -122,6 +136,10 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		config: config,
 		store:  store,
 		docs:   docs,
+		mails:  mailer,
+
+		cronInitialized: cronInitialized,
+		cron:            cron,
 	}
 
 	return api, nil

@@ -1,0 +1,28 @@
+{{define "body"}}
+<!doctype html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+  <p>Hej {{.User.Name}},</p>
+
+  <p>Det ser ud til, at du ikke har registreret nogen tid i går.</p>
+
+  <p>Husk at få det gjort – Hvis der er noget at registrere 😉</p>
+
+  <p>Du kan registrere din tid her:</p>
+
+  <p><a href="https://tid.anvi.dev/calendar/{{.Yesterday}}">Gå til tidsregistrering</a></p>
+
+  <p>
+  Med venlig hilsen<br>
+  Skancode Teamet
+  </p>
+</body>
+
+</html>
+{{end}}
