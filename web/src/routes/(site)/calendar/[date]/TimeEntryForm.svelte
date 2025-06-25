@@ -17,30 +17,37 @@
 
 	const {
 		formData,
-		categories
+		categories,
+		usePercent,
+		maxHours
 	}: {
 		categories: Category[];
+		usePercent: boolean;
+		maxHours: number;
 		formData: SuperValidated<
 			{
 				categoryId: number;
 				date: string;
-				durationHours: number;
+				durationHours: number | string;
 				description?: string | undefined;
 			},
 			any,
 			{
 				categoryId: number;
 				date: string;
-				durationHours: number;
+				durationHours: number | string;
 				description?: string | undefined;
 			}
 		>;
 	} = $props();
 
+	let percentState = $state(0);
+
 	const { form, constraints, enhance, delayed } = superForm(formData, {
 		dataType: 'json',
 		delayMs: 150,
 		timeoutMs: 8000,
+		onUpdated: () => (percentState = 0)
 	});
 
 	let categoryMap = $derived.by(() => {
@@ -97,15 +104,35 @@
 				</div>
 
 				<div class="grid gap-1">
-					<Label class="gap-[2px]" for="duration">Timer<span class="text-red-700">*</span></Label>
-					<Input
-						name="duration"
-						bind:value={$form.durationHours}
-						type="number"
-						step="0.01"
-						placeholder="Indtast antal timer"
-						{...$constraints.durationHours}
-					/>
+					<Label class="gap-[2px]" for="duration">
+						{#if usePercent}
+							Procent
+						{:else}
+							Timer
+						{/if}
+						<span class="text-red-700">*</span></Label
+					>
+					{#if usePercent}
+						<Input
+							class="input-arrows-none"
+							name="duration"
+							bind:value={percentState}
+							type="number"
+							step="0.1"
+							placeholder="Indtast procent"
+							oninput={() => ($form.durationHours = maxHours * (percentState / 100))}
+						/>
+					{:else}
+						<Input
+							class="input-arrows-none"
+							name="duration"
+							bind:value={$form.durationHours}
+							type="text"
+							placeholder="Indtast antal timer"
+							{...$constraints.durationHours}
+							pattern="(?:\d+|\d+t \d+m|0t)"
+						/>
+					{/if}
 				</div>
 
 				<div class="grid gap-1">
@@ -121,7 +148,9 @@
 
 			<Button type="submit" class="mt-2 cursor-pointer">
 				Opret
-				{#if $delayed} <LoaderCircle class="animate-spin" /> {/if}
+				{#if $delayed}
+					<LoaderCircle class="animate-spin" />
+				{/if}
 			</Button>
 		</form>
 	</CardContent>

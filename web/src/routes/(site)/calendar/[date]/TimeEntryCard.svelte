@@ -2,24 +2,43 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import type { TimeEntry } from '$lib/types';
-	import { Hour, maxFractionDigits } from '$lib/utils';
-	import { Check, Pencil, X } from '@lucide/svelte';
+	import { Hour, maxFractionDigits, toDurationString } from '$lib/utils';
+	import { Check, Loader2, Pencil, X } from '@lucide/svelte';
 	import DeleteEntryModal from './DeleteEntryModal.svelte';
 	import { Input } from '$lib/components/ui/input';
 	import { superForm } from 'sveltekit-superforms';
 
-	const { entry, maxHours }: { entry: TimeEntry; maxHours: number } = $props();
+	const {
+		entry,
+		maxHours,
+		usePercent
+	}: { entry: TimeEntry; maxHours: number; usePercent: boolean } = $props();
 
 	let editable = $state(false);
+	let percentState = $state(maxFractionDigits((entry.duration / maxHours) * 100, 1));
 
-	const formData = $derived({
+	//const formData = $derived.by(() => ());
+
+	const formData: {
+		id: number;
+		durationHours: number | string;
+		description: string;
+	} = {
 		id: entry.id,
-		durationHours: entry.duration / Hour,
+		durationHours: toDurationString(entry.duration),
 		description: entry.description
-	});
+	};
 
-	const { form, enhance } = superForm((() => formData)(), {
-		dataType: 'json'
+	const { form, enhance, submitting, delayed } = superForm(formData, {
+		dataType: 'json',
+		delayMs: 150,
+		timeoutMs: 8000,
+		onUpdated: ({ form: updatedForm }) => {
+			$form.durationHours = updatedForm.data.durationHours;
+			$form.description = updatedForm.data.description;
+
+			editable = false;
+		}
 	});
 </script>
 
@@ -32,11 +51,15 @@
 	</div>
 	{#if !editable}
 		<div class="grid grid-cols-[58px_58px_36px_36px] gap-2">
+			{#if entry.duration > 0 && maxHours > 0}
+				<Badge class="bg-background w-full px-3 py-2" variant="outline">
+					{maxFractionDigits((entry.duration / maxHours) * 100, 2)}%
+				</Badge>
+			{:else}
+				<div></div>
+			{/if}
 			<Badge class="bg-background w-full px-3 py-2" variant="outline">
-				{maxFractionDigits((entry.duration / maxHours) * 100, 2)}%
-			</Badge>
-			<Badge class="bg-background w-full px-3 py-2" variant="outline">
-				{(entry.duration / Hour).toFixed(2)}t
+				{toDurationString(entry.duration)}
 			</Badge>
 			<Button
 				class="cursor-pointer"
@@ -52,31 +75,53 @@
 		<form
 			method="POST"
 			action="?/updateTimeEntry"
-			class="grid grid-cols-[58px_58px_36px_36px] gap-2"
+			class="grid grid-cols-[58px_58px_calc(var(--spacing)_*_9)_calc(var(--spacing)_*_9)] gap-2"
 			use:enhance
 		>
 			<Input type="hidden" bind:value={$form.description} />
-			<div class="relative col-span-2 col-start-1">
-				<Input
-					type="number"
-					step="0.01"
-					inputmode="numeric"
-					class="input-arrows-none w-full"
-					bind:value={$form.durationHours}
-				/>
-				<span
-					class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
-				>
-					t
-				</span>
-			</div>
+			{#if usePercent}
+				<div class="relative col-span-2 col-start-1">
+					<Input
+						type="number"
+						step="0.1"
+						inputmode="numeric"
+						class="input-arrows-none w-full"
+						bind:value={percentState}
+						oninput={() => ($form.durationHours = (maxHours / Hour) * (percentState / 100))}
+					/>
+					<span
+						class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
+					>
+						%
+					</span>
+				</div>
+			{:else}
+				<div class="relative col-span-2 col-start-1">
+					<Input
+						type="text"
+						class="input-arrows-none w-full"
+						bind:value={$form.durationHours}
+						pattern="(?:\d+|\d+t \d+m|0t)"
+					/>
+					<span
+						class="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1 pb-1 text-center text-xs"
+					>
+						t
+					</span>
+				</div>
+			{/if}
 			<Button
 				type="submit"
 				class="cursor-pointer text-green-600 hover:text-green-600"
 				variant="outline"
 				size="icon"
+				disabled={$submitting}
 			>
-				<Check class="size-4" />
+				{#if $delayed}
+					<Loader2 class="size-4 animate-spin" />
+				{:else}
+					<Check class="size-4" />
+				{/if}
 			</Button>
 			<Button
 				type="button"
@@ -84,6 +129,7 @@
 				variant="outline"
 				size="icon"
 				onclick={() => (editable = false)}
+				disabled={$submitting}
 			>
 				<X class="size-4" />
 			</Button>

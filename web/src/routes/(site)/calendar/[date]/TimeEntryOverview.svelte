@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SummaryDay } from '$lib/types';
-	import { Hour, maxFractionDigits } from '$lib/utils';
+	import { Hour, maxFractionDigits, toDurationString } from '$lib/utils';
 	import {
 		Card,
 		CardContent,
@@ -12,42 +12,30 @@
 
 	const {
 		daySummary,
-		formattedDate
+		formattedDate,
+		usePercent
 	}: {
 		daySummary: SummaryDay;
 		formattedDate: string;
+		usePercent: boolean;
 	} = $props();
 
-	const totalHours = $derived.by(() => {
-		if (daySummary.totalHours == 0) {
-			return 0;
-		}
-
-		return maxFractionDigits(daySummary.totalHours / Hour, 2);
-	});
-
-	const maxHours = $derived.by(() => {
-		if (daySummary.maxHours == 0) {
-			return 0;
-		}
-
-		return maxFractionDigits(daySummary.maxHours / Hour, 2);
-	});
+	const { timeEntries, totalHours, maxHours } = $derived(daySummary);
 </script>
 
-{#if daySummary.timeEntries.length > 0}
+{#if timeEntries.length > 0}
 	<Card class="col-span-2">
 		<CardHeader>
 			<CardTitle>
 				Registreringer d. {formattedDate}
 			</CardTitle>
 			<CardDescription>
-				{totalHours} af {maxHours} timer registreret
+				{toDurationString(totalHours)} af {toDurationString(maxHours)} registreret
 			</CardDescription>
 		</CardHeader>
 		<CardContent>
-			{#each daySummary.timeEntries as entry (entry.id)}
-				<TimeEntryCard {entry} maxHours={daySummary.maxHours} />
+			{#each timeEntries as entry (entry.id)}
+				<TimeEntryCard {entry} {usePercent} maxHours={daySummary.maxHours} />
 			{/each}
 		</CardContent>
 	</Card>
