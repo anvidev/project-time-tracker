@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { maxFractionDigits } from '$lib/utils';
+	import { cn, maxFractionDigits } from '$lib/utils';
 	import type { SummaryDay, WeekDay } from '$lib/types';
 	import { parseDate } from '@internationalized/date';
-	import { isFuture, isPast } from 'date-fns';
+	import { isFuture, isPast, isToday } from 'date-fns';
 	import { Tween } from 'svelte/motion';
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
@@ -14,6 +14,8 @@
 	}
 
 	const { day }: { day: ExtendedSummaryDay | undefined } = $props();
+
+	const today = $derived(day ? isToday(day.date) : false);
 
 	const progress = $derived.by(() =>
 		day != undefined ? Math.min((day.totalHours / day.maxHours) * 100, 100) : 0
@@ -61,12 +63,20 @@
 		class={`${commonStyles} transition-all hover:border-blue-800 hover:shadow-sm ${day.holliday ? 'bg-muted-foreground/30 bg-striped' : day.isWeekend ? 'bg-muted/25 bg-striped' : ''}`}
 	>
 		<div class="flex h-full justify-between">
-			<p class="text-muted-foreground w-full space-x-2 text-sm font-semibold">
-				<span>{parseDate(day.date).day}</span>
+			<div class="text-muted-foreground w-full space-x-2 text-sm font-semibold">
+				<div
+					class={cn(
+						'',
+						today &&
+							'text-primary-foreground grid size-6 place-items-center rounded-full bg-blue-500 leading-[20px] tabular-nums'
+					)}
+				>
+					{parseDate(day.date).day}
+				</div>
 				{#if day.holliday}
 					<span>{day.dayName}</span>
 				{/if}
-			</p>
+			</div>
 			{#if !((day.holliday || day.isWeekend) && day.totalHours == 0)}
 				<div class="relative flex h-full justify-end gap-1">
 					{#if isPast(day.date) && !(day.isWeekend || day.holliday)}
