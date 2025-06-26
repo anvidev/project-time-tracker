@@ -53,8 +53,11 @@
 			<ArrowLeft class="size-4" />
 		</a>
 	{/if}
+	<div class="md:hidden flex items-center justify-center text-sm font-medium capitalize">
+		{monthDF.format(new Date(yearValue, monthValue, 1))} {yearDF.format(new Date(yearValue, monthValue, 1))}
+	</div>
 	<Select.Root type="single" value={monthValue.toString()} onValueChange={onMonthChange}>
-		<Select.Trigger class="cursor-pointer capitalize">
+		<Select.Trigger class="cursor-pointer capitalize hidden md:flex">
 			{monthDF.format(new Date(yearValue, monthValue, 1))}
 		</Select.Trigger>
 		<Select.Content>
@@ -66,7 +69,7 @@
 		</Select.Content>
 	</Select.Root>
 	<Select.Root type="single" value={yearValue.toString()} onValueChange={onYearChange}>
-		<Select.Trigger class="cursor-pointer capitalize">
+		<Select.Trigger class="cursor-pointer capitalize hidden md:flex">
 			{yearDF.format(new Date(yearValue, monthValue, 1))}
 		</Select.Trigger>
 		<Select.Content>
