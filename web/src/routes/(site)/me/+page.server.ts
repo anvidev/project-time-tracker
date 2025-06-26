@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import type { ServiceResponse } from '$lib/apiService';
+import type { CategoryTree } from '$lib/types';
 
 const toggleFollowSchema = z.object({
 	id: z.coerce.number(),
@@ -17,8 +18,17 @@ export const load: PageServerLoad = async ({ locals }) => {
 		error(500, categoryTrees.error);
 	}
 
-	return { categoryTrees: categoryTrees.data.sort((a, b) => a.id - b.id) };
+	return { categoryTrees: sortCategoryTrees(categoryTrees.data) };
 };
+
+const sortCategoryTrees = (trees: CategoryTree[]) => {
+	const sortTree = (tree: CategoryTree): CategoryTree => ({
+			...tree,
+			children: tree.children.map(child => sortTree(child)).sort((a, b) => a.id - b.id)
+		})
+	
+	return trees.map(tree => sortTree(tree)).sort((a, b) => a.id - b.id)
+}
 
 export const actions: Actions = {
 	toggleFollow: async ({ request, locals }) => {
