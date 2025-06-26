@@ -16,49 +16,52 @@
 		parentIsFollowed: boolean;
 	} = $props();
 
-	const observer = new MutationObserver((records) => {
-		console.log(records);
-		records.forEach((record) => console.log(record.target.getBoundingClientRect()));
+	const isBrowser = typeof window !== 'undefined';
+
+	let pixelsToLastChild = $state(0)
+
+	const resizeObserver = $derived.by(() => {
+		if (!isBrowser) {
+			return null;
+		}
+
+		return new ResizeObserver((entries) => {
+			const parentBounds = entries[0].target.firstElementChild?.getBoundingClientRect();
+
+			const children = Array.from(
+				document.querySelectorAll(`[data-parent-id='${tree.id}']`).values()
+			);
+			const lastChild = children.at(-1);
+			const childBounds = lastChild?.getBoundingClientRect();
+
+			if (parentBounds?.bottom && childBounds?.top) {
+				pixelsToLastChild = childBounds.top - parentBounds.bottom
+			} else {
+				pixelsToLastChild = 0
+			}
+		});
 	});
 
 	const isNestedChildFollowed = (tree: CategoryTree): boolean => {
 		return tree.children.some((child) => child.isFollowed || isNestedChildFollowed(child));
 	};
 
-	const getDistanceToLastChild = (): number => {
-		setTimeout(() => {
-			const children = Array.from(
-				document.querySelectorAll(`[data-parent-id='${tree.id}']`).values()
-			);
-
-			const lastChild = children.at(-1);
-			if (tree.id == 1) {
-				const bounds = lastChild?.getBoundingClientRect();
-				console.log({ children, bounds, lastChild });
-			}
-			if (lastChild) {
-				observer.observe(lastChild, { childList: true, attributes: true });
-			}
-		}, 500);
-		return 0;
-	};
-
 	onMount(() => {
-		getDistanceToLastChild();
+		const elem = document.querySelector(`[data-tree-id='${tree.id}']`);
 
-		return () => observer.disconnect();
+		if (elem && resizeObserver) resizeObserver.observe(elem);
+
+		return () => {
+			resizeObserver?.disconnect();
+		};
 	});
 </script>
 
 <Collapsible.Root
 	class="relative flex flex-col gap-1 transition-all"
+	data-tree-id={`${tree.id}`}
 	data-parent-id={`${tree.parentId}`}
 >
-	{#if level > 0}
-		<div
-			class="absolute top-[21px] z-0 h-[16px] w-[16px] -translate-x-full -translate-y-full rounded-bl-sm border-b border-l"
-		></div>
-	{/if}
 	<div
 		class="bg-background z-10 flex w-[350px] items-center gap-1 rounded-lg border px-2 py-1 text-sm tabular-nums"
 	>
@@ -81,7 +84,8 @@
 		<Collapsible.Content>
 			<div class="relative flex flex-col gap-1 pl-[32px]">
 				<div
-					class={`bg-border absolute h-[calc(100%_-_21px)] w-px -translate-x-[16px] -translate-y-[16px]`}
+					class={`bg-border absolute w-px -translate-x-[16px] -translate-y-1`}
+					style={`height: ${pixelsToLastChild+4}px`}
 				></div>
 				{#each tree.children as child}
 					<Self
@@ -92,5 +96,10 @@
 				{/each}
 			</div>
 		</Collapsible.Content>
+	{/if}
+	{#if level > 0}
+		<div
+			class="absolute top-[21px] z-0 h-[16px] w-[16px] -translate-x-full -translate-y-full rounded-bl-sm border-b border-l"
+		></div>
 	{/if}
 </Collapsible.Root>
