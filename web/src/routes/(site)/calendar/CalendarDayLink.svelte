@@ -78,7 +78,7 @@
 		href={`/calendar/${day.date}`}
 		class={cn(`${commonStyles} relative transition-all hover:border-blue-800 hover:shadow-sm`, day.holliday && 'bg-muted/25 bg-striped',  day.isWeekend && 'bg-muted/25 bg-striped', today && 'border-blue-800 bg-blue-50/80')}
 	>
-		{#if !((day.holliday || day.isWeekend) && day.totalHours == 0)}
+		{#if !((day.holliday || day.isWeekend) && day.totalHours == 0) && isPast(day.date)}
 			<span class={cn("block sm:hidden absolute top-1.5 right-1.5 rounded-full size-1.5 bg-purple-500", getProgressDotColorForMobile())}></span>
 		{/if}
 		<div class="flex h-full justify-center items-center sm:justify-between sm:items-start">
