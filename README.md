@@ -12,6 +12,8 @@ Create a `.envrc` file in the project root with the required environment variabl
 # Required
 export TURSO_DATABASE_URL=
 export TURSO_AUTH_TOKEN=
+export ORIGIN=
+export RESEND_API_KEY=
 
 # Optional
 export SERVER_ENV=development
@@ -40,6 +42,9 @@ The application will be available at `http://localhost:9090`
 
 ### Authed
  - `GET /v1/me/categories` - List followed categories
+ - `POST /v1/me/categories` - Create new category
+ - `PUT /v1/me/categories/{id}` - Update category
+ - `PUT /v1/me/categories/{id}/toggle` - Toggle category retired status
  - `GET /v1/me/categories/all` - List all categories with follow state
  - `PUT /v1/me/categories/{id}/follow` - Follows category
  - `PUT /v1/me/categories/{id}/unfollow` - Unfollows category
