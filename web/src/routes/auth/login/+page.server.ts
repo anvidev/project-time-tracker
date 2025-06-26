@@ -16,7 +16,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
+	default: async ({ request, locals, cookies, url }) => {
 		const form = await superValidate(request, zod(schema));
 		if (!form.valid) {
 			return fail(400, { form });
@@ -34,6 +34,8 @@ export const actions: Actions = {
 			httpOnly: true
 		});
 
-		redirect(303, '/calendar');
+		const redirectUrl = url.searchParams.get('redirect') ?? '/calendar'
+
+		redirect(303, redirectUrl);
 	}
 };

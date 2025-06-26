@@ -7,7 +7,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const authToken = event.cookies.get('authToken');
 	if (!event.url.pathname.startsWith('/auth') && authToken == undefined) {
-		redirect(303, '/auth/login');
+		redirect(303, `/auth/login?redirect=${event.url.pathname}`);
 	}
 	if (event.url.pathname == '/') {
 		redirect(307, '/calendar');
