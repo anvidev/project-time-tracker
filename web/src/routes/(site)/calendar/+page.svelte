@@ -1,4 +1,5 @@
 <script lang="ts">
+	import * as Navbar from '$lib/components/navbar';
 	import * as Card from '$lib/components/ui/card';
 	import type { PageProps } from './$types';
 	import type { WeekDay } from '$lib/types';
@@ -58,18 +59,22 @@
 	});
 </script>
 
-<Card.Root class="my-6 max-h-[90dvh] w-full">
-	<Card.Header>
+<Navbar.Root >
+	<Navbar.Action>
 		<MonthPicker {date} />
-		<Card.Action>
-			<a
-				href="/me"
-				class={buttonVariants({ variant: 'outline', size: 'icon', class: 'cursor-pointer' })}
-			>
-				<User />
-			</a>
-		</Card.Action>
-	</Card.Header>
+	</Navbar.Action>
+	<Navbar.Title>Kalender</Navbar.Title>
+	<Navbar.Action side="right">
+		<a
+			href="/me"
+			class={buttonVariants({ variant: 'outline', size: 'icon', class: 'ml-auto cursor-pointer' })}
+		>
+			<User />
+		</a>
+	</Navbar.Action>
+</Navbar.Root>
+
+<Card.Root class="max-h-[90dvh] w-full">
 	<Card.Content class="grid w-full grid-cols-7 gap-2">
 		{#each Object.keys(weekDayMap) as weekDay}
 			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>

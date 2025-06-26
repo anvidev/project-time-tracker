@@ -12,13 +12,13 @@
 		parentIsFollowed = false
 	}: {
 		tree: CategoryTree;
-		level: number;
-		parentIsFollowed: boolean;
+		level?: number;
+		parentIsFollowed?: boolean;
 	} = $props();
 
 	const isBrowser = typeof window !== 'undefined';
 
-	let pixelsToLastChild = $state(0)
+	let pixelsToLastChild = $state(0);
 
 	const resizeObserver = $derived.by(() => {
 		if (!isBrowser) {
@@ -35,9 +35,9 @@
 			const childBounds = lastChild?.getBoundingClientRect();
 
 			if (parentBounds?.bottom && childBounds?.top) {
-				pixelsToLastChild = childBounds.top - parentBounds.bottom
+				pixelsToLastChild = childBounds.top - parentBounds.bottom;
 			} else {
-				pixelsToLastChild = 0
+				pixelsToLastChild = 0;
 			}
 		});
 	});
@@ -85,7 +85,7 @@
 			<div class="relative flex flex-col gap-1 pl-[32px]">
 				<div
 					class={`bg-border absolute w-px -translate-x-[16px] -translate-y-1`}
-					style={`height: ${pixelsToLastChild+4}px`}
+					style={`height: ${pixelsToLastChild + 4}px`}
 				></div>
 				{#each tree.children as child}
 					<Self
