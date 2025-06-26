@@ -17,7 +17,7 @@ type CategoryTree struct {
 
 type CreateCategoryInput struct {
 	Title    string `json:"title"`
-	ParentId *int64 `json:"parentId,omitempty"`
+	ParentId *int64 `json:"parentId"`
 }
 
 type UpdateCategoryInput struct {
