@@ -67,7 +67,12 @@
 			...Array.from(Array(remainingDays))
 		];
 	});
+
+	let size = $state(0)
+	let isMobile = $derived(size <= 756)
 </script>
+
+<svelte:window bind:innerWidth={size} />
 
 <Navbar.Root>
 	<Navbar.Action>
@@ -105,7 +110,7 @@
 <Card.Root class="w-full">
 	<Card.Content class="grid w-full grid-cols-7 gap-2">
 		{#each Object.keys(weekDayMap) as weekDay}
-			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>
+			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{isMobile ? weekDay.substring(0,3) : weekDay}</p>
 		{/each}
 		{#each daysWithCalendarInfo as day (day?.id ?? crypto.randomUUID())}
 			<CalendarDayLink {day} />
