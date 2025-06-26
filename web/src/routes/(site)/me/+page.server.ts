@@ -11,6 +11,11 @@ const toggleFollowSchema = z.object({
 	isFollowed: z.coerce.boolean()
 });
 
+const createCategorySchema = z.object({
+	parentId: z.coerce.number().nullable(),
+	title: z.string()
+});
+
 export const load: PageServerLoad = async ({ locals }) => {
 	const categoryTrees = await locals.apiService.getCategories(locals.authToken);
 
@@ -49,5 +54,18 @@ export const actions: Actions = {
 		}
 
 		return message(form, 'Toggled follow');
+	},
+	createCategory: async ({ request, locals }) => {
+		const form = await superValidate(request, zod(createCategorySchema));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const res = await locals.apiService.createCategory(form.data, locals.authToken)
+		if (!res.ok) {
+			return fail(500, { form, message: res.error })
+		}
+
+		return message(form, "Created category")
 	}
 };

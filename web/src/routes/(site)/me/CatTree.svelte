@@ -7,18 +7,22 @@
 	import { onMount } from 'svelte';
 	import CatTreeToggler from './CatTreeToggler.svelte';
 	import { cn } from '$lib/utils';
+	import CreateCategoryModal from './CreateCategoryModal.svelte';
 
 	const {
 		tree,
 		level = 0,
-		parentIsFollowed = false
+		parentIsFollowed = false,
+		defaultOpen = false
 	}: {
 		tree: CategoryTree;
 		level?: number;
 		parentIsFollowed?: boolean;
+		defaultOpen?: boolean;
 	} = $props();
 
 	const isBrowser = typeof window !== 'undefined';
+	let open = $state(defaultOpen)
 
 	const { id, isFollowed } = $derived(tree);
 
@@ -50,7 +54,7 @@
 		return tree.children.some((child) => child.isFollowed || isNestedChildFollowed(child));
 	};
 
-	let toggleSubmitting = $state(false)
+	let toggleSubmitting = $state(false);
 
 	onMount(() => {
 		const elem = document.querySelector(`[data-tree-id='${tree.id}']`);
@@ -67,10 +71,11 @@
 	class="relative flex flex-col gap-1 transition-all"
 	data-tree-id={`${tree.id}`}
 	data-parent-id={`${tree.parentId}`}
+	bind:open
 >
 	<div
 		class={cn(
-			"bg-background z-10 flex min-h-[42px] w-[350px] items-center gap-1 rounded-lg border px-2 py-1 text-sm tabular-nums",
+			'bg-background z-10 flex min-h-[42px] w-full items-center gap-1 rounded-lg border px-2 py-1 text-sm tabular-nums',
 			toggleSubmitting && 'bg-muted text-muted-foreground'
 		)}
 	>
@@ -82,16 +87,29 @@
 			isNestedChildFollowed={isNestedChildFollowed(tree)}
 		/>
 		<p>{tree.title}</p>
-		<Collapsible.Trigger
-			disabled={tree.children.length == 0}
-			class={buttonVariants({
-				variant: 'ghost',
-				size: 'sm',
-				class: `ml-auto ${tree.children.length == 0 ? 'hidden' : ''}`
-			})}
-		>
-			<ChevronsUpDown />
-		</Collapsible.Trigger>
+		{#if tree.children.length > 0}
+			<Collapsible.Trigger
+				disabled={toggleSubmitting}
+				class={buttonVariants({
+					variant: 'ghost',
+					size: 'sm',
+					class: 'ml-auto'
+				})}
+			>
+				<ChevronsUpDown />
+			</Collapsible.Trigger>
+		{:else}
+			<CreateCategoryModal
+				disabled={toggleSubmitting}
+				triggerClass={buttonVariants({
+					variant: 'outline',
+					size: 'sm',
+					class: 'ml-auto border-dashed'
+				})}
+				parentId={id}
+				parentName={tree.title}
+			/>
+		{/if}
 	</div>
 	{#if tree.children.length > 0}
 		<Collapsible.Content>
@@ -100,6 +118,14 @@
 					class={`bg-border absolute w-px -translate-x-[16px] -translate-y-1`}
 					style={`height: ${pixelsToLastChild + 4}px`}
 				></div>
+				<CreateCategoryModal
+					triggerClass={buttonVariants({
+						variant: 'outline',
+						class: 'h-[40px] w-full cursor-pointer border-dashed'
+					})}
+					parentId={id}
+					parentName={tree.title}
+				/>
 				{#each tree.children as child}
 					<Self
 						tree={child}

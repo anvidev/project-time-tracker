@@ -3,6 +3,7 @@ import type {
 	Calendar,
 	Category,
 	CategoryTree,
+	NewCategory,
 	RegisterTimeEntryInput,
 	Session,
 	SummaryDay,
@@ -34,6 +35,7 @@ export type ApiService = {
 	logIn: (data: { email: string; password: string }) => Promise<ServiceResponse<Session>>;
 	getUserCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
 	getCategories: (authToken: string) => Promise<ServiceResponse<CategoryTree[]>>;
+	createCategory: (data: NewCategory, authToken: string) => Promise<ServiceResponse<Category>>;
 	followCategory: (id: number, authToken: string) => Promise<ServiceResponse<null>>;
 	unfollowCategory: (id: number, authToken: string) => Promise<ServiceResponse<null>>;
 	createTimeEntry: (
@@ -188,6 +190,32 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 						error: body
 					};
 				}
+			},
+			createCategory: async function(data: NewCategory, authToken: string): Promise<ServiceResponse<Category>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories`, {
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json()).category
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					error: `${body.code}: ${body.error}`
+				};
 			},
 
 			followCategory: async function(

@@ -6,6 +6,11 @@ export interface Session {
 	updatedAt: string;
 }
 
+export interface NewCategory {
+	parentId: number | null;
+	title: string;
+}
+
 export interface Category {
 	id: number;
 	title: string;

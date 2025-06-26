@@ -45,7 +45,7 @@
 	<input type="hidden" name="id" value={$form.id} />
 	<input type="hidden" name="isFollowed" value={$form.isFollowed} />
 	<Button
-		disabled={$formSubmitting}
+		disabled={$formSubmitting || parentIsFollowed}
 		type="submit"
 		variant="ghost"
 		size="sm"
