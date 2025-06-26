@@ -21,7 +21,6 @@ export SERVER_ADDR=9090
 export SERVER_READ_TIMEOUT=10s
 export SERVER_WRITE_TIMEOUT=30s
 export SERVER_IDLE_TIMEOUT=1m
-
 ```
 ## Running the project
 
