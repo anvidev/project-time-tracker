@@ -10,6 +10,7 @@
 	import HourPercentSwitch from './HourPercentSwitch.svelte';
 	import { localStore } from '$lib/stores';
 	import { Hour } from '$lib/utils';
+	import { format, startOfMonth } from 'date-fns';
 
 	let { data }: PageProps = $props();
 
@@ -41,7 +42,11 @@
 <div
 	class="relative mb-6 flex h-[70px] w-full items-center gap-4 rounded-xl border p-4 text-center"
 >
-	<Button class="absolute top-1/2 left-4 -translate-y-1/2" href="/calendar" variant="link">
+	<Button
+		class="absolute top-1/2 left-4 -translate-y-1/2"
+		href={`/calendar?date=${format(startOfMonth(daySummary.date), 'yyyy-MM-dd')}`}
+		variant="link"
+	>
 		<ArrowLeft />
 		Tilbage
 	</Button>
