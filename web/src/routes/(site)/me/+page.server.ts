@@ -1,12 +1,43 @@
-import { error } from "@sveltejs/kit"
-import type { PageServerLoad } from "./$types"
+import { error } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
+import { z } from 'zod';
+import { fail, message, superValidate } from 'sveltekit-superforms';
+import { zod } from 'sveltekit-superforms/adapters';
+import type { ServiceResponse } from '$lib/apiService';
 
-export const load: PageServerLoad = async ({ locals }) => { 
-	const categoryTrees = await locals.apiService.getCategories(locals.authToken)
+const toggleFollowSchema = z.object({
+	id: z.coerce.number(),
+	isFollowed: z.coerce.boolean()
+});
+
+export const load: PageServerLoad = async ({ locals }) => {
+	const categoryTrees = await locals.apiService.getCategories(locals.authToken);
 
 	if (!categoryTrees.ok) {
-		error(500, categoryTrees.error)
+		error(500, categoryTrees.error);
 	}
 
-	return { categoryTrees: categoryTrees.data }
-}
+	return { categoryTrees: categoryTrees.data.sort((a, b) => a.id - b.id) };
+};
+
+export const actions: Actions = {
+	toggleFollow: async ({ request, locals }) => {
+		const form = await superValidate(request, zod(toggleFollowSchema));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		let res: ServiceResponse<null>;
+		if (form.data.isFollowed) {
+			res = await locals.apiService.unfollowCategory(form.data.id, locals.authToken);
+		} else {
+			res = await locals.apiService.followCategory(form.data.id, locals.authToken);
+		}
+
+		if (!res.ok) {
+			return fail(500, { form });
+		}
+
+		return message(form, 'Toggled follow');
+	}
+};

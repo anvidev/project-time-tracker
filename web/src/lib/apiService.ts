@@ -34,6 +34,8 @@ export type ApiService = {
 	logIn: (data: { email: string; password: string }) => Promise<ServiceResponse<Session>>;
 	getUserCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
 	getCategories: (authToken: string) => Promise<ServiceResponse<CategoryTree[]>>;
+	followCategory: (id: number, authToken: string) => Promise<ServiceResponse<null>>;
+	unfollowCategory: (id: number, authToken: string) => Promise<ServiceResponse<null>>;
 	createTimeEntry: (
 		data: RegisterTimeEntryInput,
 		authToken: string
@@ -186,6 +188,63 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 						error: body
 					};
 				}
+			},
+
+			followCategory: async function(
+				id: number,
+				authToken: string
+			): Promise<ServiceResponse<null>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories/${id}/follow`, {
+					method: 'put',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: null
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			unfollowCategory: async function(
+				id: number,
+				authToken: string
+			): Promise<ServiceResponse<null>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories/${id}/unfollow`, {
+					method: 'put',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: null
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					error: `${body.code}: ${body.error}`
+				};
 			},
 
 			// TIME_ENTRIES

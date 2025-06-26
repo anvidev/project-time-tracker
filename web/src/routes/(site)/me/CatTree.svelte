@@ -2,9 +2,11 @@
 	import Self from './CatTree.svelte';
 	import type { CategoryTree } from '$lib/types';
 	import * as Collapsible from '$lib/components/ui/collapsible';
-	import { ChevronsUpDown, Circle, CircleCheck, CircleDot } from '@lucide/svelte';
+	import { ChevronsUpDown } from '@lucide/svelte';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { onMount } from 'svelte';
+	import CatTreeToggler from './CatTreeToggler.svelte';
+	import { cn } from '$lib/utils';
 
 	const {
 		tree,
@@ -17,6 +19,8 @@
 	} = $props();
 
 	const isBrowser = typeof window !== 'undefined';
+
+	const { id, isFollowed } = $derived(tree);
 
 	let pixelsToLastChild = $state(0);
 
@@ -46,6 +50,8 @@
 		return tree.children.some((child) => child.isFollowed || isNestedChildFollowed(child));
 	};
 
+	let toggleSubmitting = $state(false)
+
 	onMount(() => {
 		const elem = document.querySelector(`[data-tree-id='${tree.id}']`);
 
@@ -63,19 +69,26 @@
 	data-parent-id={`${tree.parentId}`}
 >
 	<div
-		class="bg-background z-10 flex w-[350px] items-center gap-1 rounded-lg border px-2 py-1 text-sm tabular-nums"
+		class={cn(
+			"bg-background z-10 flex min-h-[42px] w-[350px] items-center gap-1 rounded-lg border px-2 py-1 text-sm tabular-nums",
+			toggleSubmitting && 'bg-muted text-muted-foreground'
+		)}
 	>
-		{#if parentIsFollowed || tree.isFollowed}
-			<CircleCheck class="size-4 text-green-600" />
-		{:else if isNestedChildFollowed(tree)}
-			<CircleDot class="size-4 text-yellow-600" />
-		{:else}
-			<Circle class="size-4" />
-		{/if}
+		<CatTreeToggler
+			{id}
+			{isFollowed}
+			{parentIsFollowed}
+			bind:submitting={toggleSubmitting}
+			isNestedChildFollowed={isNestedChildFollowed(tree)}
+		/>
 		<p>{tree.title}</p>
 		<Collapsible.Trigger
 			disabled={tree.children.length == 0}
-			class={buttonVariants({ variant: 'ghost', size: 'sm', class: 'ml-auto' })}
+			class={buttonVariants({
+				variant: 'ghost',
+				size: 'sm',
+				class: `ml-auto ${tree.children.length == 0 ? 'hidden' : ''}`
+			})}
 		>
 			<ChevronsUpDown />
 		</Collapsible.Trigger>
