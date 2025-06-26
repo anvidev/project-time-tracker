@@ -13,7 +13,7 @@ Create a `.envrc` file in the project root with the required environment variabl
 export TURSO_DATABASE_URL=  # libsql connection url - starts with libsql://
 export TURSO_AUTH_TOKEN=    # needed to connect to database
 export ORIGIN=              # needed for SvelteKit to allow network requests to go through
-export RESEND_API_KEY=      # neeeded for cron jobs to send mails
+export RESEND_API_KEY=      # needed for cron jobs to send mails
 
 # Optional
 export SERVER_ENV=development
