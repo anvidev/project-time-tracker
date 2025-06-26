@@ -18,6 +18,8 @@ services:
       SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT}
       SERVER_IDLE_TIMEOUT: ${SERVER_IDLE_TIMEOUT}
 
+      RESEND_API_KEY: ${RESEND_API_KEY}
+
   web:
     build:
       context: ./web

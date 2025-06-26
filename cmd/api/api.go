@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,10 +11,13 @@ import (
 	"time"
 
 	"github.com/anvidev/apiduck"
+	"github.com/anvidev/goenv"
 	"github.com/anvidev/project-time-tracker/internal/database"
+	"github.com/anvidev/project-time-tracker/internal/mailer"
 	"github.com/anvidev/project-time-tracker/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-co-op/gocron/v2"
 )
 
 func (api *api) handler() http.Handler {
@@ -60,20 +64,24 @@ func (api *api) handler() http.Handler {
 }
 
 type api struct {
-	config config
+	config Config
 	logger *slog.Logger
 	store  *store.Store
 	docs   *apiduck.Documentation
+	mails  mailer.Mailer
+
+	cronInitialized bool
+	cron            gocron.Scheduler
 }
 
 func (api *api) Run() error {
 	mux := api.handler()
 
 	srv := &http.Server{
-		Addr:         api.config.server.addr,
-		ReadTimeout:  api.config.server.readTimeout,
-		WriteTimeout: api.config.server.writeTimeout,
-		IdleTimeout:  api.config.server.idleTimeout,
+		Addr:         api.config.Server.Addr,
+		ReadTimeout:  api.config.Server.ReadTimeout,
+		WriteTimeout: api.config.Server.WriteTimeout,
+		IdleTimeout:  api.config.Server.IdleTimeout,
 		Handler:      mux,
 	}
 
@@ -81,11 +89,19 @@ func (api *api) Run() error {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		api.logger.Info("server starting", "addr", api.config.server.addr, "env", api.config.server.env)
+		api.logger.Info("server starting", "addr", api.config.Server.Addr, "env", api.config.Server.Env)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			api.logger.Error("server failed to start", "error", err)
 		}
 	}()
+
+	if api.cronInitialized {
+		if err := api.createCronJobs(); err != nil {
+			api.logger.Warn("creating cron jobs failed", "error", err)
+		} else {
+			go api.cron.Start()
+		}
+	}
 
 	<-quit
 	api.logger.Info("server shutting down")
@@ -93,15 +109,33 @@ func (api *api) Run() error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	_ = api.cron.Shutdown()
+
 	return srv.Shutdown(shutdownCtx)
 }
 
 func NewApiContext(ctx context.Context) (*api, error) {
 	logger := slog.Default()
-	config := loadConfig()
-	docs := initDocumentation(config)
 
-	db, err := database.NewContext(ctx, config.database.url, config.database.token)
+	var config Config
+	if err := goenv.Struct(&config); err != nil {
+		logger.Error("error", "err", err.Error())
+		os.Exit(1)
+	}
+	fmt.Printf("config is: %+v\n", config)
+
+	docs := initDocumentation(config)
+	mails := mailer.NewResendMailer(config.Resend.ApiKey, config.Resend.From)
+
+	var cronInitialized bool
+	cron, err := initCronScheduler()
+	if err != nil {
+		logger.Warn("cron scheduler initialization failed", "error", err)
+	} else {
+		cronInitialized = true
+	}
+
+	db, err := database.NewContext(ctx, config.Database.URL, config.Database.Token)
 	if err != nil {
 		logger.Error("database connection failed", "error", err)
 		return nil, err
@@ -114,6 +148,10 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		config: config,
 		store:  store,
 		docs:   docs,
+		mails:  mails,
+
+		cronInitialized: cronInitialized,
+		cron:            cron,
 	}
 
 	return api, nil

@@ -155,3 +155,39 @@ func (s *Store) setHours(ctx context.Context, tx *sql.Tx, hours *Hours) error {
 
 	return nil
 }
+
+func (s *Store) List(ctx context.Context) ([]User, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `select id, name, email, role, is_active, created_at from users`
+
+	rows, err := s.db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := []User{}
+
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(
+			&user.Id,
+			&user.Name,
+			&user.Email,
+			&user.Role,
+			&user.IsActive,
+			&user.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
