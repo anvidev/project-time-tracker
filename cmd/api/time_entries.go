@@ -233,3 +233,76 @@ func (api *api) entriesUnfollowCategory(w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (api *api) entriesCreateCategory(w http.ResponseWriter, r *http.Request) {
+	var body categories.CreateCategoryInput
+
+	if err := api.readJSON(w, r, &body); err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
+	category, err := api.store.Categories.Create(r.Context(), body)
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	response := map[string]any{
+		"category": category,
+	}
+
+	if err := api.writeJSON(w, http.StatusCreated, response); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (api *api) entriesUpdateCategory(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
+	var body categories.UpdateCategoryInput
+
+	if err := api.readJSON(w, r, &body); err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
+	category, err := api.store.Categories.Update(r.Context(), id, body.Title)
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	response := map[string]any{
+		"category": category,
+	}
+
+	if err := api.writeJSON(w, http.StatusCreated, response); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (api *api) entriesToggleCategory(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		api.badRequestError(w, r, err)
+		return
+	}
+
+	err = api.store.Categories.ToggleRetire(r.Context(), id)
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	if err := api.writeJSON(w, http.StatusNoContent, nil); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}

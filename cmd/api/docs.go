@@ -32,7 +32,7 @@ func initDocumentation(config Config) *apiduck.Documentation {
 	)
 
 	docs.AddServer("http://localhost:9090", "Development Server")
-	docs.AddServer("https://tid-api.anvi.dev", "Production Server")
+	docs.AddServer("https://api.tid.skancode.dk", "Production Server")
 
 	docs.AddSecurity(apiduck.BearerToken("(bearer-token-for-users)", "Brugere skal være logget ind for at få adgang til ressourcer med denne authentication"))
 
@@ -137,6 +137,83 @@ func initDocumentation(config Config) *apiduck.Documentation {
 						RootTitle: "Software Udvikling",
 					},
 				},
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusInternalServerError, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeInternal,
+				Error: "something went wrong",
+			}),
+		)
+
+	meResource.Post("/v1/me/categories", "Opret ny kategori", "Opret en ny kateogri som enten root-kategori eller som en child-kategori").
+		Security("(bearer-token-for-users)").
+		Body(apiduck.JSONBody(categories.CreateCategoryInput{}).Example(categories.CreateCategoryInput{
+			Title:    "Lagerløsning",
+			ParentId: nil,
+		})).
+		Response(apiduck.JSONResponse(http.StatusCreated, struct {
+			Category categories.Category `json:"category"`
+		}{}).Example(struct {
+			Category categories.Category `json:"category"`
+		}{
+			Category: categories.Category{
+				Id:        42,
+				Title:     "Lagerløsning",
+				RootTitle: "",
+			},
+		})).
+		Response(
+			apiduck.JSONResponse(http.StatusBadRequest, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeBadRequest,
+				Error: "invalid body",
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusInternalServerError, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeInternal,
+				Error: "something went wrong",
+			}),
+		)
+
+	meResource.Put("/v1/me/categories/{id}", "Opdater en kategori", "Opdater en kategoris titel").
+		Security("(bearer-token-for-users)").
+		PathParams(apiduck.PathParam("id", "Kategori id").Example(42)).
+		Body(apiduck.JSONBody(categories.UpdateCategoryInput{}).Example(categories.UpdateCategoryInput{
+			Title: "Ny Lagerløsning for kudne",
+		})).
+		Response(apiduck.JSONResponse(http.StatusCreated, struct {
+			Category categories.Category `json:"category"`
+		}{}).Example(struct {
+			Category categories.Category `json:"category"`
+		}{
+			Category: categories.Category{
+				Id:        42,
+				Title:     "Ny Lagerløsning for kunde",
+				RootTitle: "",
+			},
+		})).
+		Response(
+			apiduck.JSONResponse(http.StatusBadRequest, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeBadRequest,
+				Error: "invalid body",
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusInternalServerError, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeInternal,
+				Error: "something went wrong",
+			}),
+		)
+
+	meResource.Put("/v1/me/categories/{id}/toggle", "Spær eller åben en kategori", "Ændrer status på en kategori mellem spærret og åbnet").
+		Security("(bearer-token-for-users)").
+		PathParams(apiduck.PathParam("id", "Kategori id").Example(42)).
+		Response(apiduck.JSONResponse(http.StatusNoContent, nil).Description("Kategori spærret/åbnet")).
+		Response(
+			apiduck.JSONResponse(http.StatusBadRequest, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeBadRequest,
+				Error: "invalid body",
 			}),
 		).
 		Response(

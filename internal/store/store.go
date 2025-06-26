@@ -36,6 +36,9 @@ type TimeEntriesStorer interface {
 }
 
 type CategoriesStorer interface {
+	Create(ctx context.Context, input categories.CreateCategoryInput) (*categories.Category, error)
+	Update(ctx context.Context, id int64, title string) (*categories.Category, error)
+	ToggleRetire(ctx context.Context, id int64) error
 	Leafs(ctx context.Context, userId int64) ([]categories.Category, error)
 	Follow(ctx context.Context, id, userId int64) error
 	Unfollow(ctx context.Context, id, userId int64) error
