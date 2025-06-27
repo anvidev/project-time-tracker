@@ -22,7 +22,7 @@
 	} = $props();
 
 	const isBrowser = typeof window !== 'undefined';
-	let open = $state(defaultOpen)
+	let open = $state(defaultOpen);
 
 	const { id, isFollowed } = $derived(tree);
 
@@ -93,7 +93,7 @@
 				class={buttonVariants({
 					variant: 'ghost',
 					size: 'sm',
-					class: 'ml-auto'
+					class: 'ml-auto border border-dashed has-[>svg]:px-2'
 				})}
 			>
 				<ChevronsUpDown />
@@ -102,9 +102,9 @@
 			<CreateCategoryModal
 				disabled={toggleSubmitting}
 				triggerClass={buttonVariants({
-					variant: 'outline',
+					variant: 'ghost',
 					size: 'sm',
-					class: 'ml-auto border-dashed'
+					class: 'ml-auto border border-dashed has-[>svg]:px-2 shadow-none'
 				})}
 				parentId={id}
 				parentName={tree.title}
@@ -118,14 +118,19 @@
 					class={`bg-border absolute w-px -translate-x-[16px] -translate-y-1`}
 					style={`height: ${pixelsToLastChild + 4}px`}
 				></div>
-				<CreateCategoryModal
-					triggerClass={buttonVariants({
-						variant: 'outline',
-						class: 'h-[40px] w-full cursor-pointer border-dashed'
-					})}
-					parentId={id}
-					parentName={tree.title}
-				/>
+				<div class="relative">
+					<div
+						class="absolute top-[21px] z-0 h-[16px] w-[16px] -translate-x-full -translate-y-full rounded-bl-sm border-b border-l"
+					></div>
+					<CreateCategoryModal
+						triggerClass={buttonVariants({
+							variant: 'ghost',
+							class: 'h-[40px] w-full cursor-pointer border border-dashed'
+						})}
+						parentId={id}
+						parentName={tree.title}
+					/>
+				</div>
 				{#each tree.children as child}
 					<Self
 						tree={child}

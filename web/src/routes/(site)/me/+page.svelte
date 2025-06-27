@@ -34,8 +34,8 @@
 		{/each}
 		<CreateCategoryModal
 			triggerClass={buttonVariants({
-				variant: 'outline',
-				class: 'h-[42px] w-full cursor-pointer border-dashed'
+				variant: 'ghost',
+				class: 'h-[41px] w-full cursor-pointer border border-dashed'
 			})}
 			parentId={null}
 			parentName={null}

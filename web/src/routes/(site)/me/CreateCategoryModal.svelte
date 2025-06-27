@@ -38,7 +38,7 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Trigger {disabled} class={cn(triggerClass, 'bg-muted/50 hover:bg-muted cursor-pointer')}>
+	<Dialog.Trigger {disabled} class={cn(triggerClass, 'bg-muted/45 hover:bg-muted cursor-pointer')}>
 		<Plus class="size-4" />
 	</Dialog.Trigger>
 	<Dialog.Content>
