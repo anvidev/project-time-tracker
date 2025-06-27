@@ -76,7 +76,6 @@
 			class="grid grid-cols-[58px_58px_calc(var(--spacing)_*_9)_calc(var(--spacing)_*_9)] gap-2 max-sm:w-full max-sm:grid-cols-[3fr_1fr_1fr]"
 			use:enhance
 		>
-			<!-- <Input type="hidden" bind:value={$form.description} /> -->
 			{#if usePercent}
 				<div class="relative md:col-span-2 col-start-1">
 					<Input
