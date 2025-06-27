@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { z } from 'zod';
 import { fail, message, superValidate } from 'sveltekit-superforms';
@@ -16,11 +16,16 @@ const createCategorySchema = z.object({
 	title: z.string()
 });
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 	const categoryTrees = await locals.apiService.getCategories(locals.authToken);
 
 	if (!categoryTrees.ok) {
-		error(500, categoryTrees.error);
+		if (categoryTrees.status == 401) {
+			cookies.delete('authToken', {path: '/'})
+			redirect(303, `/auth/login?redirect=${url.pathname}`)
+		}
+
+		error(categoryTrees.status, categoryTrees.error);
 	}
 
 	return { categoryTrees: sortCategoryTrees(categoryTrees.data) };
@@ -36,7 +41,7 @@ const sortCategoryTrees = (trees: CategoryTree[]) => {
 }
 
 export const actions: Actions = {
-	toggleFollow: async ({ request, locals }) => {
+	toggleFollow: async ({ request, locals, cookies, url }) => {
 		const form = await superValidate(request, zod(toggleFollowSchema));
 		if (!form.valid) {
 			return fail(400, { form });
@@ -50,12 +55,16 @@ export const actions: Actions = {
 		}
 
 		if (!res.ok) {
-			return fail(500, { form });
+			if (res.status == 401) {
+				cookies.delete('authToken', {path: '/'})
+				redirect(303, `/auth/login?redirect=${url.pathname}`)
+			}
+			return fail(res.status, { form });
 		}
 
 		return message(form, 'Toggled follow');
 	},
-	createCategory: async ({ request, locals }) => {
+	createCategory: async ({ request, locals, cookies, url }) => {
 		const form = await superValidate(request, zod(createCategorySchema));
 		if (!form.valid) {
 			return fail(400, { form });
@@ -63,7 +72,11 @@ export const actions: Actions = {
 
 		const res = await locals.apiService.createCategory(form.data, locals.authToken)
 		if (!res.ok) {
-			return fail(500, { form, message: res.error })
+			if (res.status == 401) {
+				cookies.delete('authToken', {path: '/'})
+				redirect(303, `/auth/login?redirect=${url.pathname}`)
+			}
+			return fail(res.status, { form });
 		}
 
 		return message(form, "Created category")

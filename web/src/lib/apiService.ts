@@ -19,6 +19,7 @@ type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 
 export type ErrorServiceResponse<E extends string> = {
 	ok: false;
+	status: number;
 	error: E;
 };
 export type SuccessServiceResponse<T> = {
@@ -91,6 +92,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -117,6 +119,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -144,6 +147,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 					return {
 						ok: false,
+					status: res.status,
 						error: `${body.code}: ${body.error}`
 					};
 				} else {
@@ -152,6 +156,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					console.error(body);
 					return {
 						ok: false,
+					status: res.status,
 						error: body
 					};
 				}
@@ -179,6 +184,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 					return {
 						ok: false,
+					status: res.status,
 						error: `${body.code}: ${body.error}`
 					};
 				} else {
@@ -187,6 +193,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					console.error(body);
 					return {
 						ok: false,
+					status: res.status,
 						error: body
 					};
 				}
@@ -214,6 +221,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -243,6 +251,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -271,6 +280,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -305,6 +315,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -338,6 +349,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -366,6 +378,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -413,6 +426,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -458,6 +472,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -473,6 +488,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: await res.text()
 				};
 			}
