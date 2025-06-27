@@ -2,6 +2,8 @@ import { format } from 'date-fns';
 import type {
 	Calendar,
 	Category,
+	CategoryTree,
+	NewCategory,
 	RegisterTimeEntryInput,
 	Session,
 	SummaryDay,
@@ -17,6 +19,7 @@ type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respons
 
 export type ErrorServiceResponse<E extends string> = {
 	ok: false;
+	status: number;
 	error: E;
 };
 export type SuccessServiceResponse<T> = {
@@ -32,6 +35,10 @@ export type ApiService = {
 	register: (data: { name: string; email: string; password: string }) => Promise<ServiceResponse>;
 	logIn: (data: { email: string; password: string }) => Promise<ServiceResponse<Session>>;
 	getUserCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
+	getCategories: (authToken: string) => Promise<ServiceResponse<CategoryTree[]>>;
+	createCategory: (data: NewCategory, authToken: string) => Promise<ServiceResponse<Category>>;
+	followCategory: (id: number, authToken: string) => Promise<ServiceResponse<null>>;
+	unfollowCategory: (id: number, authToken: string) => Promise<ServiceResponse<null>>;
 	createTimeEntry: (
 		data: RegisterTimeEntryInput,
 		authToken: string
@@ -85,6 +92,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -111,6 +119,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -138,6 +147,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 					return {
 						ok: false,
+					status: res.status,
 						error: `${body.code}: ${body.error}`
 					};
 				} else {
@@ -146,9 +156,133 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					console.error(body);
 					return {
 						ok: false,
+					status: res.status,
 						error: body
 					};
 				}
+			},
+
+			getCategories: async function(authToken: string): Promise<ServiceResponse<CategoryTree[]>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories/all`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json()).categories
+					};
+				}
+
+				if (res.headers.get('content-type')?.includes('application/json')) {
+					const body: {
+						error: string;
+						code: string;
+					} = await res.json();
+
+					return {
+						ok: false,
+					status: res.status,
+						error: `${body.code}: ${body.error}`
+					};
+				} else {
+					const body = await res.text();
+
+					console.error(body);
+					return {
+						ok: false,
+					status: res.status,
+						error: body
+					};
+				}
+			},
+			createCategory: async function(data: NewCategory, authToken: string): Promise<ServiceResponse<Category>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories`, {
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify(data)
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json()).category
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+
+			followCategory: async function(
+				id: number,
+				authToken: string
+			): Promise<ServiceResponse<null>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories/${id}/follow`, {
+					method: 'put',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: null
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			unfollowCategory: async function(
+				id: number,
+				authToken: string
+			): Promise<ServiceResponse<null>> {
+				const res = await fetch(`${baseUrl}/v1/me/categories/${id}/unfollow`, {
+					method: 'put',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: null
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
 			},
 
 			// TIME_ENTRIES
@@ -181,6 +315,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -214,6 +349,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -242,6 +378,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -289,6 +426,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -334,6 +472,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
 			},
@@ -349,6 +488,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 				return {
 					ok: false,
+					status: res.status,
 					error: await res.text()
 				};
 			}

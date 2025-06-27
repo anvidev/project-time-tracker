@@ -6,6 +6,7 @@
 		SelectGroup,
 		SelectItem,
 		SelectLabel,
+		SelectSeparator,
 		SelectTrigger
 	} from '$lib/components/ui/select';
 	import { Card, CardContent } from '$lib/components/ui/card';
@@ -14,6 +15,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import type { Category } from '$lib/types';
 	import { LoaderCircle } from '@lucide/svelte';
+  import { Textarea } from "$lib/components/ui/textarea/index.js";
 
 	const {
 		formData,
@@ -89,11 +91,14 @@
 							{categoryTriggerContent}
 						</SelectTrigger>
 						<SelectContent>
-							{#each Object.entries(categoryMap) as [label, categories]}
+							{#each Object.entries(categoryMap) as [label, categories], index (label)}
 								<SelectGroup>
+									{#if index > 0}
+										<SelectSeparator class="ml-px" />
+									{/if}
 									<SelectLabel>{label}</SelectLabel>
-									{#each categories as category}
-										<SelectItem value={category.id.toString()}>
+									{#each categories as category (category.id)}
+										<SelectItem class="pl-4" value={category.id.toString()}>
 											{category.title}
 										</SelectItem>
 									{/each}
@@ -137,12 +142,13 @@
 
 				<div class="grid gap-1">
 					<Label for="description">Beskrivelse</Label>
-					<Input
+					<Textarea
 						name="description"
 						bind:value={$form.description}
 						placeholder="Indtast valgfri beskrivelse"
+						class="resize-none"
 						{...$constraints.description}
-					/>
+					></Textarea>
 				</div>
 			</div>
 

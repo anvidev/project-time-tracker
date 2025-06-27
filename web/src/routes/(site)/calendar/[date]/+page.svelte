@@ -10,6 +10,8 @@
 	import HourPercentSwitch from './HourPercentSwitch.svelte';
 	import { localStore } from '$lib/stores';
 	import { Hour } from '$lib/utils';
+	import { format, startOfMonth } from 'date-fns';
+	import * as Navbar from '$lib/components/navbar';
 
 	let { data }: PageProps = $props();
 
@@ -38,31 +40,34 @@
 	let usePercentStore = localStore('usePercent', false);
 </script>
 
-<div
-	class="relative mb-6 flex h-[70px] w-full items-center gap-4 rounded-xl border p-4 text-center"
->
-	<Button class="absolute top-1/2 left-4 -translate-y-1/2" href="/calendar" variant="link">
-		<ArrowLeft />
-		Tilbage
-	</Button>
-	<p class="w-full text-xl font-semibold tracking-tight">Tidsregistrering d. {formattedDate}</p>
-	<div class="absolute top-1/2 right-4 -translate-y-1/2">
+<Navbar.Root>
+	<Navbar.Action>
+		<Button
+			href={`/calendar?date=${format(startOfMonth(daySummary.date), 'yyyy-MM-dd')}`}
+			variant="link"
+		>
+			<ArrowLeft />
+			Tilbage
+		</Button>
+	</Navbar.Action>
+	<Navbar.Title>{formattedDate}</Navbar.Title>
+	<Navbar.Action side="right">
 		<HourPercentSwitch
 			bind:value={$usePercentStore}
 			onActiveChange={(active) => usePercentStore.set(active == 'right')}
 		/>
-	</div>
-</div>
+	</Navbar.Action>
+</Navbar.Root>
 
 <div class="grid w-full grid-cols-2 gap-6">
-	<ProgressCard {daySummary} usePercent={$usePercentStore} />
-
-	<TimeEntryForm
-		maxHours={daySummary.maxHours / Hour}
-		formData={data.createForm}
-		categories={data.categories}
-		usePercent={$usePercentStore}
-	/>
-
+	<div class="flex flex-col md:flex-row-reverse col-span-2 gap-6 [&>*]:w-full">
+		<TimeEntryForm
+			maxHours={daySummary.maxHours / Hour}
+			formData={data.createForm}
+			categories={data.categories}
+			usePercent={$usePercentStore}
+		/>
+		<ProgressCard {daySummary} usePercent={$usePercentStore} />
+	</div>
 	<TimeEntryOverview {daySummary} {formattedDate} usePercent={$usePercentStore} />
 </div>

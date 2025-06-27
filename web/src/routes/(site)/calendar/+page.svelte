@@ -1,10 +1,14 @@
 <script lang="ts">
+	import * as Navbar from '$lib/components/navbar';
 	import * as Card from '$lib/components/ui/card';
 	import type { PageProps } from './$types';
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
 	import MonthPicker from './MonthPicker.svelte';
-	import { DateFormatter } from '@internationalized/date';
+	import { ChartPie, Hourglass, User } from '@lucide/svelte';
+	import { buttonVariants } from '$lib/components/ui/button';
+	import { toDurationString } from '$lib/utils';
+	import UserDropdown from './UserDropdown.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -20,23 +24,23 @@
 		Søndag: 6
 	};
 
-	const title = $derived.by(() => {
-		const dateFormatter = new DateFormatter('da-DK', {
-			month: 'long',
-			year: 'numeric'
-		});
+	const [daysWithCalendarInfo, totalTime, daysWithEntries] = $derived.by(() => {
+		let totalTime = 0;
+		let daysWithEntries = 0;
 
-		return dateFormatter.format(date);
-	});
-
-	const daysWithCalendarInfo = $derived.by(() => {
 		if (summary.days.length < 28) {
-			return [];
+			return [[], totalTime, daysWithEntries];
 		}
 
 		const days = summary.days.map((day) => {
 			const calendarDay = calendar.days.find((cDay) => day.date == cDay.date);
 			if (!calendarDay) return;
+
+			totalTime += day.totalHours;
+
+			if (day.timeEntries.length > 0) {
+				daysWithEntries++;
+			}
 
 			return {
 				...day,
@@ -52,30 +56,57 @@
 		const first = days[0];
 		const weekDaysBeforeFirst = weekDayMap[first?.weekday ?? 'Mandag'] - weekDayMap['Mandag'];
 
-		if (weekDaysBeforeFirst == 0) {
-			return days;
-		}
-
 		const remainingDays = 7 - ((days.length + weekDaysBeforeFirst) % 7);
 
 		return [
-			...Array.from(Array(weekDaysBeforeFirst)),
-			...days,
-			...Array.from(Array(remainingDays))
+			[...Array.from(Array(weekDaysBeforeFirst)), ...days, ...Array.from(Array(remainingDays))],
+			totalTime,
+			daysWithEntries
 		];
 	});
+
+	let size = $state(0);
+	let isMobile = $derived(size <= 756);
 </script>
 
-<Card.Root class="my-6 max-h-[90dvh] w-full">
-	<Card.Header>
-		<Card.Title class="capitalize">{title}</Card.Title>
-		<Card.Action>
-			<MonthPicker {date} />
-		</Card.Action>
-	</Card.Header>
+<svelte:window bind:innerWidth={size} />
+
+<Navbar.Root>
+	<Navbar.Action>
+		<MonthPicker {date} />
+	</Navbar.Action>
+	<Navbar.Title class="hidden md:block">Kalender</Navbar.Title>
+	<Navbar.Action side="right">
+		<UserDropdown />
+	</Navbar.Action>
+</Navbar.Root>
+
+<div class="flex w-full flex-col items-center gap-4 md:flex-row">
+	<div class="flex w-full items-center gap-4 rounded-md border p-4 shadow-xs">
+		<ChartPie class="mb-auto text-blue-500" />
+		<div>
+			<p class="text-lg leading-none font-bold">{toDurationString(totalTime)}</p>
+			<small class="text-muted-foreground text-xs">Total tid denne måned</small>
+		</div>
+	</div>
+
+	<div class="flex w-full items-center gap-4 rounded-md border p-4 shadow-xs">
+		<Hourglass class="mb-auto text-purple-500" />
+		<div>
+			<p class="text-lg leading-none font-bold">
+				{toDurationString(totalTime > 0 && daysWithEntries > 0 ? totalTime / daysWithEntries : 0)}
+			</p>
+			<small class="text-muted-foreground text-xs">Gennemsnitlig daglig tid</small>
+		</div>
+	</div>
+</div>
+
+<Card.Root class="w-full">
 	<Card.Content class="grid w-full grid-cols-7 gap-2">
 		{#each Object.keys(weekDayMap) as weekDay}
-			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>
+			<p class="text-muted-foreground w-full text-center text-sm font-semibold">
+				{isMobile ? weekDay.substring(0, 3) : weekDay}
+			</p>
 		{/each}
 		{#each daysWithCalendarInfo as day (day?.id ?? crypto.randomUUID())}
 			<CalendarDayLink {day} />

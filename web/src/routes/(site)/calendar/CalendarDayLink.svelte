@@ -40,11 +40,27 @@
 		return 'fill-green-500';
 	};
 
+	const getProgressTextColorForMobile = () => {
+		if (progress < 25) return 'text-red-500';
+		if (progress < 50) return 'text-orange-500';
+		if (progress < 75) return 'text-yellow-500';
+		if (progress < 100) return 'text-green-300';
+		return 'text-green-500';
+	}
+
+	const getProgressDotColorForMobile = () => {
+		if (progress < 25) return 'bg-red-500';
+		if (progress < 50) return 'bg-orange-500';
+		if (progress < 75) return 'bg-yellow-500';
+		if (progress < 100) return 'bg-green-300';
+		return 'bg-green-500';
+	}
+
 	const getProgressBgColor = () => {
 		return 'fill-slate-200';
 	};
 
-	const commonStyles = 'flex w-full aspect-16/8 flex-col justify-between rounded-lg border p-2';
+	const commonStyles = 'flex w-full aspect-square sm:aspect-16/11 flex-col justify-between rounded-lg border py-1 px-2 md:p-2';
 
 	onMount(() => {
 		animatedProgress.target =
@@ -56,35 +72,38 @@
 </script>
 
 {#if day == undefined}
-	<div class={`bg-muted ${commonStyles}`}></div>
+	<div class={`bg-muted/25 border-border/50 ${commonStyles}`}></div>
 {:else}
 	<a
 		href={`/calendar/${day.date}`}
-		class={`${commonStyles} transition-all hover:border-blue-800 hover:shadow-sm ${day.holliday ? 'bg-muted-foreground/30 bg-striped' : day.isWeekend ? 'bg-muted/25 bg-striped' : ''}`}
+		class={cn(`${commonStyles} relative transition-all hover:border-blue-800 hover:shadow-sm`, day.holliday && 'bg-muted/25 bg-striped',  day.isWeekend && 'bg-muted/25 bg-striped', today && 'border-blue-800 bg-blue-50/80')}
 	>
-		<div class="flex h-full justify-between">
-			<div class="text-muted-foreground w-full space-x-2 text-sm font-semibold">
+		{#if !((day.holliday || day.isWeekend) && day.totalHours == 0) && isPast(day.date)}
+			<span class={cn("block sm:hidden absolute top-1.5 right-1.5 rounded-full size-1.5 bg-purple-500", getProgressDotColorForMobile())}></span>
+		{/if}
+		<div class="flex h-full justify-center items-center sm:justify-between sm:items-start">
+			<div class="text-muted-foreground gap-1.5 flex items-start text-sm font-medium md:w-full">
 				<div
 					class={cn(
-						'',
+						'text-sm md:text-sm',
 						today &&
-							'text-primary-foreground grid size-6 place-items-center rounded-full bg-blue-500 leading-[20px] tabular-nums'
+							'text-blue-500 grid place-items-center tabular-nums'
 					)}
 				>
 					{parseDate(day.date).day}
 				</div>
 				{#if day.holliday}
-					<span>{day.dayName}</span>
+					<span class="hidden md:block text-xs md:text-sm truncate">{day.dayName}</span>
 				{/if}
 			</div>
 			{#if !((day.holliday || day.isWeekend) && day.totalHours == 0)}
-				<div class="relative flex h-full justify-end gap-1">
+				<div class="relative h-full justify-end gap-1 hidden sm:flex">
 					{#if isPast(day.date) && !(day.isWeekend || day.holliday)}
-						<p class={`text-muted-foreground text-center text-xs transition-all`}>
+						<p class={cn('text-muted-foreground text-center text-xs md:text-sm transition-all max-md:mt-px', getProgressTextColorForMobile(), 'lg:text-foreground')}>
 							{progressStr}
 						</p>
 					{/if}
-					<div class="relative aspect-[1/6] h-[100%] overflow-hidden rounded-[5px]">
+					<div class="hidden lg:block relative w-2 h-[100%] overflow-hidden rounded-[3px]">
 						<svg
 							class="absolute inset-0 h-full w-full"
 							viewBox="0 0 10 10"

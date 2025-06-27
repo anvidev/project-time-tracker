@@ -17,8 +17,6 @@
 	let editable = $state(false);
 	let percentState = $state(maxFractionDigits((entry.duration / maxHours) * 100, 1));
 
-	//const formData = $derived.by(() => ());
-
 	const formData: {
 		id: number;
 		durationHours: number | string;
@@ -42,15 +40,15 @@
 	});
 </script>
 
-<div class="bg-muted mb-2 flex items-center justify-between rounded-lg border p-2">
+<div class="bg-muted mb-2 flex justify-between rounded-lg border p-2 max-sm:flex-col items-start gap-2">
 	<div>
 		<p class="font-semibold tracking-tight">{entry.category}</p>
-		<p class="text-muted-foreground text-sm">
+		<p class="text-muted-foreground text-sm whitespace-pre-line">
 			{entry.description ? entry.description : 'Ingen beskrivelse'}
 		</p>
 	</div>
 	{#if !editable}
-		<div class="grid grid-cols-[58px_58px_36px_36px] gap-2">
+		<div class="grid grid-cols-[58px_58px_36px_36px] gap-2 max-sm:grid-cols-[2fr_2fr_1fr_1fr] max-sm:w-full">
 			{#if entry.duration > 0 && maxHours > 0}
 				<Badge class="bg-background w-full px-3 py-2" variant="outline">
 					{maxFractionDigits((entry.duration / maxHours) * 100, 2)}%
@@ -62,7 +60,7 @@
 				{toDurationString(entry.duration)}
 			</Badge>
 			<Button
-				class="cursor-pointer"
+				class="cursor-pointer max-sm:w-full"
 				variant="outline"
 				size="icon"
 				onclick={() => (editable = true)}
@@ -75,12 +73,11 @@
 		<form
 			method="POST"
 			action="?/updateTimeEntry"
-			class="grid grid-cols-[58px_58px_calc(var(--spacing)_*_9)_calc(var(--spacing)_*_9)] gap-2"
+			class="grid grid-cols-[58px_58px_calc(var(--spacing)_*_9)_calc(var(--spacing)_*_9)] gap-2 max-sm:w-full max-sm:grid-cols-[3fr_1fr_1fr]"
 			use:enhance
 		>
-			<Input type="hidden" bind:value={$form.description} />
 			{#if usePercent}
-				<div class="relative col-span-2 col-start-1">
+				<div class="relative md:col-span-2 col-start-1">
 					<Input
 						type="number"
 						step="0.1"
@@ -96,7 +93,7 @@
 					</span>
 				</div>
 			{:else}
-				<div class="relative col-span-2 col-start-1">
+				<div class="relative md:col-span-2 col-start-1">
 					<Input
 						type="text"
 						class="input-arrows-none w-full"
@@ -112,7 +109,7 @@
 			{/if}
 			<Button
 				type="submit"
-				class="cursor-pointer text-green-600 hover:text-green-600"
+				class="cursor-pointer text-green-600 hover:text-green-600 max-sm:w-full"
 				variant="outline"
 				size="icon"
 				disabled={$submitting}
@@ -125,7 +122,7 @@
 			</Button>
 			<Button
 				type="button"
-				class="cursor-pointer text-red-500 hover:text-red-500"
+				class="cursor-pointer text-red-500 hover:text-red-500 max-sm:w-full"
 				variant="outline"
 				size="icon"
 				onclick={() => (editable = false)}

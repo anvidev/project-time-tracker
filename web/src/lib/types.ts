@@ -6,10 +6,24 @@ export interface Session {
 	updatedAt: string;
 }
 
+export interface NewCategory {
+	parentId: number | null;
+	title: string;
+}
+
 export interface Category {
 	id: number;
 	title: string;
 	rootTitle: string;
+}
+
+export interface CategoryTree {
+	id: number;
+	parentId: any;
+	title: string;
+	isRetired: boolean;
+	isFollowed: boolean;
+	children: CategoryTree[];
 }
 
 export interface RegisterTimeEntryInput {
