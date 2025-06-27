@@ -16,7 +16,7 @@
 	<AlertDialog.Trigger
 		class={buttonVariants({
 			variant: 'outline',
-			class: 'cursor-pointer text-red-500 hover:text-red-500',
+			class: 'cursor-pointer max-sm:w-full text-red-500 hover:text-red-500',
 			size: 'icon'
 		})}
 	>

@@ -14,6 +14,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import type { Category } from '$lib/types';
 	import { LoaderCircle } from '@lucide/svelte';
+  import { Textarea } from "$lib/components/ui/textarea/index.js";
 
 	const {
 		formData,
@@ -137,12 +138,13 @@
 
 				<div class="grid gap-1">
 					<Label for="description">Beskrivelse</Label>
-					<Input
+					<Textarea
 						name="description"
 						bind:value={$form.description}
 						placeholder="Indtast valgfri beskrivelse"
+						class="resize-none"
 						{...$constraints.description}
-					/>
+					></Textarea>
 				</div>
 			</div>
 

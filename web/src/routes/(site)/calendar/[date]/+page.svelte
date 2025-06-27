@@ -50,7 +50,7 @@
 			Tilbage
 		</Button>
 	</Navbar.Action>
-	<Navbar.Title>Tidsregistrering d. {formattedDate}</Navbar.Title>
+	<Navbar.Title>{formattedDate}</Navbar.Title>
 	<Navbar.Action side="right">
 		<HourPercentSwitch
 			bind:value={$usePercentStore}
@@ -60,14 +60,14 @@
 </Navbar.Root>
 
 <div class="grid w-full grid-cols-2 gap-6">
-	<ProgressCard {daySummary} usePercent={$usePercentStore} />
-
-	<TimeEntryForm
-		maxHours={daySummary.maxHours / Hour}
-		formData={data.createForm}
-		categories={data.categories}
-		usePercent={$usePercentStore}
-	/>
-
+	<div class="flex flex-col md:flex-row-reverse col-span-2 gap-6 [&>*]:w-full">
+		<TimeEntryForm
+			maxHours={daySummary.maxHours / Hour}
+			formData={data.createForm}
+			categories={data.categories}
+			usePercent={$usePercentStore}
+		/>
+		<ProgressCard {daySummary} usePercent={$usePercentStore} />
+	</div>
 	<TimeEntryOverview {daySummary} {formattedDate} usePercent={$usePercentStore} />
 </div>

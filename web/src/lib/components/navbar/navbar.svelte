@@ -13,7 +13,7 @@
 <div
 	bind:this={ref}
 	class={cn(
-		'relative mb-6 flex h-[70px] w-full items-center gap-4 rounded-lg border p-4 text-center shadow-xs',
+		'relative flex h-[70px] w-full items-center gap-4 rounded-lg border p-4 text-center shadow-xs',
 		className
 	)}
 	{...restProps}

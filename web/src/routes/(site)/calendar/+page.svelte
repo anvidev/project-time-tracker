@@ -5,8 +5,9 @@
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
 	import MonthPicker from './MonthPicker.svelte';
-	import { User } from '@lucide/svelte';
+	import { ChartPie, Hourglass, User } from '@lucide/svelte';
 	import { buttonVariants } from '$lib/components/ui/button';
+	import { toDurationString } from '$lib/utils';
 
 	const { data }: PageProps = $props();
 
@@ -22,6 +23,9 @@
 		Søndag: 6
 	};
 
+	let totalTime = 0;
+	let daysWithEntries = 0;
+
 	const daysWithCalendarInfo = $derived.by(() => {
 		if (summary.days.length < 28) {
 			return [];
@@ -30,6 +34,12 @@
 		const days = summary.days.map((day) => {
 			const calendarDay = calendar.days.find((cDay) => day.date == cDay.date);
 			if (!calendarDay) return;
+
+			totalTime += day.totalHours;
+
+			if (day.timeEntries.length > 0) {
+				daysWithEntries++;
+			}
 
 			return {
 				...day,
@@ -57,13 +67,18 @@
 			...Array.from(Array(remainingDays))
 		];
 	});
+
+	let size = $state(0)
+	let isMobile = $derived(size <= 756)
 </script>
 
-<Navbar.Root >
+<svelte:window bind:innerWidth={size} />
+
+<Navbar.Root>
 	<Navbar.Action>
 		<MonthPicker {date} />
 	</Navbar.Action>
-	<Navbar.Title>Kalender</Navbar.Title>
+	<Navbar.Title class="hidden md:block">Kalender</Navbar.Title>
 	<Navbar.Action side="right">
 		<a
 			href="/me"
@@ -74,10 +89,28 @@
 	</Navbar.Action>
 </Navbar.Root>
 
-<Card.Root class="max-h-[90dvh] w-full">
+<div class="flex w-full flex-col items-center gap-4 md:flex-row">
+	<div class="shadow-xs flex w-full items-center gap-4 rounded-md border p-4">
+		<ChartPie class="mb-auto text-blue-500" />
+		<div>
+			<p class="leading-none text-lg font-bold">{toDurationString(totalTime)}</p>
+			<small class="text-muted-foreground text-xs">Total tid denne måned</small>
+		</div>
+	</div>
+
+	<div class="shadow-xs flex w-full items-center gap-4 rounded-md border p-4">
+		<Hourglass class="mb-auto text-purple-500" />
+		<div>
+			<p class="leading-none text-lg font-bold">{toDurationString(totalTime / daysWithEntries)}</p>
+			<small class="text-muted-foreground text-xs">Gennemsnitlig daglig tid</small>
+		</div>
+	</div>
+</div>
+
+<Card.Root class="w-full">
 	<Card.Content class="grid w-full grid-cols-7 gap-2">
 		{#each Object.keys(weekDayMap) as weekDay}
-			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{weekDay}</p>
+			<p class="text-muted-foreground w-full text-center text-sm font-semibold">{isMobile ? weekDay.substring(0,3) : weekDay}</p>
 		{/each}
 		{#each daysWithCalendarInfo as day (day?.id ?? crypto.randomUUID())}
 			<CalendarDayLink {day} />
