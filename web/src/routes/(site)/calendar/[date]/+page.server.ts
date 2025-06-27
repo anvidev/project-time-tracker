@@ -5,7 +5,7 @@ import { zod } from 'sveltekit-superforms/adapters';
 import { error } from '@sveltejs/kit';
 import { durationStringToGoDurationString, Hour, toGoDurationString } from '$lib/utils';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
-import type { DurationString, UpdateTimeEntryInput } from '$lib/types';
+import type { Category, CategoryTree, DurationString, UpdateTimeEntryInput } from '$lib/types';
 
 const createTimeEntrySchema = z.object({
 	categoryId: z.coerce.number(),
@@ -44,12 +44,60 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		error(500, daySummaryRes.error);
 	}
 
-	const categoryRes = await locals.apiService.getUserCategories(locals.authToken);
-	if (!categoryRes.ok) {
-		error(500, categoryRes.error);
+	const categoriesRes = await locals.apiService.getCategories(locals.authToken);
+	if (!categoriesRes.ok) {
+		error(500, categoriesRes.error);
 	}
 
-	return { createForm, categories: categoryRes.data, daySummary: daySummaryRes.data };
+	const categories = categoriesRes.data.flatMap(tree => flattenCategoryTree(tree));
+
+	return {
+		createForm,
+		categories,
+		daySummary: daySummaryRes.data
+	};
+};
+
+const flattenCategoryTree = (tree: CategoryTree): Category[] => {
+	const flattenChild = (
+		tree: CategoryTree,
+		parentTitles: string[],
+		isParentFollowed: boolean
+	): Category[] => {
+		const children = tree.children.flatMap((child) =>
+			flattenChild(child, [...parentTitles, tree.title], isParentFollowed || tree.isFollowed)
+		);
+
+		if (children.length > 0) {
+			return children;
+		} else if (tree.isFollowed || isParentFollowed) {
+			return [
+				{
+					id: tree.id,
+					title: tree.title,
+					rootTitle: parentTitles.join(' - ')
+				}
+			];
+		} else {
+			return [];
+		}
+	};
+
+	const children = tree.children.flatMap(child => flattenChild(child, [tree.title], tree.isFollowed))
+
+	if (children.length > 0) {
+		return children;
+	} else if (tree.isFollowed) {
+		return [
+			{
+				id: tree.id,
+				title: tree.title,
+				rootTitle: tree.title
+			}
+		];
+	} else {
+		return [];
+	}
 };
 
 export const actions: Actions = {

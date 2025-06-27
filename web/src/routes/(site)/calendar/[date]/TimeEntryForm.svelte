@@ -6,6 +6,7 @@
 		SelectGroup,
 		SelectItem,
 		SelectLabel,
+		SelectSeparator,
 		SelectTrigger
 	} from '$lib/components/ui/select';
 	import { Card, CardContent } from '$lib/components/ui/card';
@@ -90,11 +91,14 @@
 							{categoryTriggerContent}
 						</SelectTrigger>
 						<SelectContent>
-							{#each Object.entries(categoryMap) as [label, categories]}
+							{#each Object.entries(categoryMap) as [label, categories], index (label)}
 								<SelectGroup>
+									{#if index > 0}
+										<SelectSeparator class="ml-px" />
+									{/if}
 									<SelectLabel>{label}</SelectLabel>
-									{#each categories as category}
-										<SelectItem value={category.id.toString()}>
+									{#each categories as category (category.id)}
+										<SelectItem class="pl-4" value={category.id.toString()}>
 											{category.title}
 										</SelectItem>
 									{/each}
