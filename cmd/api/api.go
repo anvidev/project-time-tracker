@@ -56,6 +56,10 @@ func (api *api) handler() http.Handler {
 				r.Get("/day/{date}", api.entriesSummaryDay)           // date: YYYY-MM-DD
 				r.Get("/month/{year-month}", api.entriesSummaryMonth) // month: YYYY-MM
 			})
+
+			r.Route("/hours", func(r chi.Router) {
+				r.Get("/", api.hoursAll)
+			})
 		})
 
 	})
