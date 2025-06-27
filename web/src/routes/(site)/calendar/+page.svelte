@@ -8,6 +8,7 @@
 	import { ChartPie, Hourglass, User } from '@lucide/svelte';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { toDurationString } from '$lib/utils';
+	import UserDropdown from './UserDropdown.svelte';
 
 	const { data }: PageProps = $props();
 
@@ -76,12 +77,7 @@
 	</Navbar.Action>
 	<Navbar.Title class="hidden md:block">Kalender</Navbar.Title>
 	<Navbar.Action side="right">
-		<a
-			href="/me"
-			class={buttonVariants({ variant: 'outline', size: 'icon', class: 'ml-auto cursor-pointer' })}
-		>
-			<User />
-		</a>
+		<UserDropdown />
 	</Navbar.Action>
 </Navbar.Root>
 
