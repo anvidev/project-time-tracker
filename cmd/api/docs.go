@@ -7,6 +7,7 @@ import (
 
 	"github.com/anvidev/apiduck"
 	"github.com/anvidev/project-time-tracker/internal/store/categories"
+	"github.com/anvidev/project-time-tracker/internal/store/hours"
 	"github.com/anvidev/project-time-tracker/internal/store/sessions"
 	"github.com/anvidev/project-time-tracker/internal/store/time_entries"
 	"github.com/anvidev/project-time-tracker/internal/store/users"
@@ -489,6 +490,51 @@ func initDocumentation(config Config) *apiduck.Documentation {
 			apiduck.JSONResponse(http.StatusBadRequest, errorEnvelope{}).Example(errorEnvelope{
 				Code:  ErrorCodeBadRequest,
 				Error: "invalid body",
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusInternalServerError, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeInternal,
+				Error: "something went wrong",
+			}),
+		)
+
+	meResource.Get("/v1/me/hours", "Hent max timer for alle ugens dage", "Hent max timer for alle ugens dage").
+		Security("(bearer-token-for-users)").
+		Response(apiduck.JSONResponse(
+			http.StatusOK,
+			struct {
+				Hours []hours.Weekday `json:"hours"`
+			}{}).
+			Example(map[string]any{
+				"hours": []hours.Weekday{
+					{
+						Weekday: 0,
+					},
+					{
+						Weekday: 1,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 2,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 3,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 4,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 5,
+						Hours:   types.Duration{Duration: 7 * time.Hour},
+					},
+					{
+						Weekday: 6,
+					},
+				},
 			}),
 		).
 		Response(
