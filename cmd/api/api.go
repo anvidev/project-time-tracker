@@ -59,6 +59,7 @@ func (api *api) handler() http.Handler {
 
 			r.Route("/hours", func(r chi.Router) {
 				r.Get("/", api.hoursAll)
+				r.Put("/", api.update)
 			})
 		})
 

@@ -543,6 +543,56 @@ func initDocumentation(config Config) *apiduck.Documentation {
 				Error: "something went wrong",
 			}),
 		)
+	meResource.Put("/v1/me/hours", "Opdater max timer for alle ugens dage", "Opdater max timer for alle ugens dage").
+		Security("(bearer-token-for-users)").
+		Body(apiduck.JSONBody(
+			struct {
+				Hours []hours.Weekday `json:"hours"`
+			}{}).
+			Example(map[string]any{
+				"hours": []hours.Weekday{
+					{
+						Weekday: 0,
+					},
+					{
+						Weekday: 1,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 2,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 3,
+						Hours:   types.Duration{Duration: 7*time.Hour + 30*time.Minute},
+					},
+					{
+						Weekday: 4,
+						Hours:   types.Duration{Duration: 8 * time.Hour},
+					},
+					{
+						Weekday: 5,
+						Hours:   types.Duration{Duration: 7 * time.Hour},
+					},
+					{
+						Weekday: 6,
+					},
+				},
+			}),
+		).
+		Response(apiduck.JSONResponse(http.StatusNoContent, nil)).
+		Response(
+			apiduck.JSONResponse(http.StatusBadRequest, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeBadRequest,
+				Error: "invalid request body",
+			}),
+		).
+		Response(
+			apiduck.JSONResponse(http.StatusInternalServerError, errorEnvelope{}).Example(errorEnvelope{
+				Code:  ErrorCodeInternal,
+				Error: "something went wrong",
+			}),
+		)
 
 	return docs
 }

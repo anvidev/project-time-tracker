@@ -62,4 +62,5 @@ type UserStorer interface {
 
 type HourStorer interface {
 	AllWeekdays(ctx context.Context, userId int64) ([]hours.Weekday, error)
+	UpdateWeekdays(ctx context.Context, userId int64, data []hours.Weekday) error
 }
