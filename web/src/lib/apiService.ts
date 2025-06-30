@@ -11,9 +11,11 @@ import type {
 	SummaryMonth,
 	SummaryMonthDTO,
 	TimeEntry,
-	UpdateTimeEntryInput
+	UpdateTimeEntryInput,
+	WeekdayHours,
+	WeekdayHoursDTO
 } from './types';
-import { parseDuration } from './utils';
+import { dayNumToWeekDay, parseDuration } from './utils';
 
 type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -58,6 +60,8 @@ export type ApiService = {
 		authToken: string
 	) => Promise<ServiceResponse<SummaryMonth>>;
 	getCalendarYear: (year: number) => Promise<ServiceResponse<Calendar>>;
+	getMaxHours: (authToken: string) => Promise<ServiceResponse<WeekdayHours[]>>;
+	updateMaxHours: (data: WeekdayHoursDTO[], authToken: string) => Promise<ServiceResponse<null>>;
 };
 
 let apiServiceInstance: ApiService | undefined;
@@ -147,7 +151,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 					return {
 						ok: false,
-					status: res.status,
+						status: res.status,
 						error: `${body.code}: ${body.error}`
 					};
 				} else {
@@ -156,7 +160,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					console.error(body);
 					return {
 						ok: false,
-					status: res.status,
+						status: res.status,
 						error: body
 					};
 				}
@@ -184,7 +188,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 
 					return {
 						ok: false,
-					status: res.status,
+						status: res.status,
 						error: `${body.code}: ${body.error}`
 					};
 				} else {
@@ -193,12 +197,15 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					console.error(body);
 					return {
 						ok: false,
-					status: res.status,
+						status: res.status,
 						error: body
 					};
 				}
 			},
-			createCategory: async function(data: NewCategory, authToken: string): Promise<ServiceResponse<Category>> {
+			createCategory: async function(
+				data: NewCategory,
+				authToken: string
+			): Promise<ServiceResponse<Category>> {
 				const res = await fetch(`${baseUrl}/v1/me/categories`, {
 					method: 'POST',
 					headers: {
@@ -490,6 +497,66 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					ok: false,
 					status: res.status,
 					error: await res.text()
+				};
+			},
+			getMaxHours: async function(authToken: string): Promise<ServiceResponse<WeekdayHours[]>> {
+				const res = await fetch(`${baseUrl}/v1/me/hours`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res
+							.json()
+							.then((json) => json.hours as WeekdayHoursDTO[])
+							.then((hours) =>
+								hours.map((hour) => ({
+									weekday: dayNumToWeekDay(hour.weekday, { sundayFirst: true }),
+									hours: parseDuration(hour.hours) ?? 0
+								}))
+							)
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			updateMaxHours: async function (data: WeekdayHoursDTO[], authToken: string): Promise<ServiceResponse<null>> {
+				const res = await fetch(`${baseUrl}/v1/me/hours`, {
+					method: 'put',
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					},
+					body: JSON.stringify({hours: data}),
+				})
+				
+				if (res.ok) {
+					return {
+						ok: true,
+						data: null,
+					}
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
 				};
 			}
 		};

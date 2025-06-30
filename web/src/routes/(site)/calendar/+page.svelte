@@ -5,24 +5,13 @@
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
 	import MonthPicker from './MonthPicker.svelte';
-	import { ChartPie, Hourglass, User } from '@lucide/svelte';
-	import { buttonVariants } from '$lib/components/ui/button';
-	import { toDurationString } from '$lib/utils';
+	import { ChartPie, Hourglass } from '@lucide/svelte';
+	import { toDurationString, weekDayMap } from '$lib/utils';
 	import UserDropdown from './UserDropdown.svelte';
 
 	const { data }: PageProps = $props();
 
 	const { summary, calendar, date } = $derived(data);
-
-	const weekDayMap: Record<WeekDay, number> = {
-		Mandag: 0,
-		Tirsdag: 1,
-		Onsdag: 2,
-		Torsdag: 3,
-		Fredag: 4,
-		Lørdag: 5,
-		Søndag: 6
-	};
 
 	const [daysWithCalendarInfo, totalTime, daysWithEntries] = $derived.by(() => {
 		let totalTime = 0;
