@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/anvidev/project-time-tracker/internal/store/categories"
+	"github.com/anvidev/project-time-tracker/internal/store/hours"
 	"github.com/anvidev/project-time-tracker/internal/store/sessions"
 	"github.com/anvidev/project-time-tracker/internal/store/time_entries"
 	"github.com/anvidev/project-time-tracker/internal/store/users"
@@ -16,6 +17,7 @@ type Store struct {
 	Categories  CategoriesStorer
 	Sessions    SessionStorer
 	Users       UserStorer
+	Hours       HourStorer
 }
 
 func NewStore(db *sql.DB) *Store {
@@ -24,6 +26,7 @@ func NewStore(db *sql.DB) *Store {
 		Categories:  categories.NewStore(db),
 		Sessions:    sessions.NewStore(db),
 		Users:       users.NewStore(db),
+		Hours:       hours.NewStore(db),
 	}
 }
 
@@ -55,4 +58,9 @@ type UserStorer interface {
 	Register(ctx context.Context, input users.RegisterUserInput) (*users.User, error)
 	GetByEmail(ctx context.Context, email string) (*users.User, error)
 	List(ctx context.Context) ([]users.User, error)
+}
+
+type HourStorer interface {
+	AllWeekdays(ctx context.Context, userId int64) ([]hours.Weekday, error)
+	UpdateWeekdays(ctx context.Context, userId int64, data []hours.Weekday) error
 }

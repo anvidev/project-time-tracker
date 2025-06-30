@@ -26,6 +26,16 @@ export interface CategoryTree {
 	children: CategoryTree[];
 }
 
+export interface WeekdayHours {
+	weekday: WeekDay,
+	hours: Duration
+}
+
+export interface WeekdayHoursDTO {
+	weekday: number,
+	hours: GoDurationString
+}
+
 export interface RegisterTimeEntryInput {
 	categoryId: number;
 	date: string;
