@@ -19,6 +19,7 @@ func (s *Store) AllWeekdays(ctx context.Context, userId int64) ([]Weekday, error
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	days := make([]Weekday, 0, 0)
 	for rows.Next() {
