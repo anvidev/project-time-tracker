@@ -9,20 +9,19 @@
 	import { cn } from '$lib/utils';
 	import CreateCategoryModal from './CreateCategoryModal.svelte';
 
-	const {
+	let {
 		tree,
 		level = 0,
 		parentIsFollowed = false,
-		defaultOpen = false
+		open = $bindable<boolean>(false)
 	}: {
 		tree: CategoryTree;
 		level?: number;
 		parentIsFollowed?: boolean;
-		defaultOpen?: boolean;
+		open?: boolean;
 	} = $props();
 
 	const isBrowser = typeof window !== 'undefined';
-	let open = $state(defaultOpen);
 
 	const { id, isFollowed } = $derived(tree);
 
