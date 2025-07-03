@@ -23,7 +23,12 @@
 	);
 
 	const { isTainted, tainted, submit, submitting, delayed } = maxHoursSuperForm;
+
+	let size = $state(0);
+	let treeOpen = $derived(size > 960);
 </script>
+
+<svelte:window bind:innerWidth={size} />
 
 <Navbar.Root>
 	<Navbar.Action>
@@ -42,9 +47,9 @@
 		<p class="text-muted-foreground w-full text-xs">Se og opdater dine valgte kategorier</p>
 	</div>
 
-	<div class="grid w-full grid-cols-3 gap-6 p-6">
+	<div class="grid w-full gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
 		{#each categoryTrees as tree (tree.id)}
-			<CatTree {tree} defaultOpen />
+			<CatTree {tree} bind:open={treeOpen} />
 		{/each}
 		<CreateCategoryModal
 			triggerClass={buttonVariants({

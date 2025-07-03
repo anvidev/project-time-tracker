@@ -31,11 +31,11 @@
 </script>
 
 <form id="max-hours-form" action="?/updateMaxHours" method="POST" use:enhance>
-	<div class="grid w-full grid-cols-7 gap-6 p-6">
+	<div class="grid w-full gap-6 p-6 lg:grid-cols-7">
 		{#each $form.maxHours as hour, index (`${hour.weekday}_${toDurationString(hour.hours)}`)}
 			<div class="grid rounded-lg border text-center">
 				<p
-					class="z-10 border-b-muted-foreground/30 bg-muted text-muted-foreground rounded-t-lg border-b px-6 py-3 font-semibold shadow-sm"
+					class="border-b-muted-foreground/30 bg-muted text-muted-foreground z-10 rounded-t-lg border-b px-6 py-3 font-semibold shadow-sm"
 				>
 					{hour.weekday}
 				</p>
