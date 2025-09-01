@@ -11,7 +11,7 @@
 
 	const { data }: PageProps = $props();
 
-	const { summary, calendar, date } = $derived(data);
+	const { summary, calendar, date, user } = $derived(data);
 
 	const [daysWithCalendarInfo, totalTime, daysWithEntries] = $derived.by(() => {
 		let totalTime = 0;
@@ -66,6 +66,9 @@
 	</Navbar.Action>
 	<Navbar.Title class="hidden md:block">Kalender</Navbar.Title>
 	<Navbar.Action side="right">
+		{#if user.role == 'employer'}
+			<a href="/admin">employer</a>
+		{/if}
 		<UserDropdown />
 	</Navbar.Action>
 </Navbar.Root>

@@ -15,6 +15,7 @@ import (
 
 var (
 	ErrTimeEntryNotDeleted = errors.New("time entry not deleted")
+	ErrNoTimeEntriesFound  = errors.New("no rows found")
 )
 
 func (s *Store) Register(ctx context.Context, userId int64, input RegisterTimeEntryInput) (*TimeEntry, error) {
@@ -263,4 +264,144 @@ func (s *Store) getDailySummary(ctx context.Context, tx *sql.Tx, userId int64, d
 	}
 
 	return summary, nil
+}
+
+func (s *Store) CategoryTotal(ctx context.Context, categoryId int64) (time.Duration, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	var total time.Duration
+
+	stmt := `
+			select duration
+			from time_entries
+			where category_id = ? 
+		`
+
+	rows, err := s.db.QueryContext(ctx, stmt, categoryId)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return 0, ErrNoTimeEntriesFound
+		default:
+			return 0, err
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var duration types.Duration
+
+		if err := rows.Scan(&duration); err != nil {
+			return 0, err
+		}
+
+		fmt.Println(duration.Duration.String())
+
+		total += duration.Duration
+	}
+
+	return total, nil
+}
+
+func (s *Store) List(ctx context.Context, filter Filters) ([]TimeEntry, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	baseStmt := `
+		select 
+			te.id,
+			te.category_id,
+			c.title as category,
+			te.user_id,
+			u.name as user_name,
+			te.date,
+			te.duration,
+			te.description
+		from time_entries te
+		inner join categories c on c.id = te.category_id
+		inner join users u on u.id = te.user_id
+		where (
+			? = '' or (
+				te.description like '%' || ? || '%'
+				or u.name like '%' || ? || '%'
+				or c.title like '%' || ? || '%'
+			)
+		)`
+
+	args := []any{
+		filter.Query,
+		filter.Query,
+		filter.Query,
+		filter.Query,
+	}
+
+	categoryCondition := ""
+	if len(filter.CategoryId) > 0 {
+		placeholders := make([]string, len(filter.CategoryId))
+		for i, categoryId := range filter.CategoryId {
+			placeholders[i] = "?"
+			args = append(args, categoryId)
+		}
+		categoryCondition = fmt.Sprintf("and te.category_id in (%s)", strings.Join(placeholders, ","))
+	}
+
+	userCondition := ""
+	if len(filter.UserId) > 0 {
+		placeholders := make([]string, len(filter.UserId))
+		for i, userId := range filter.UserId {
+			placeholders[i] = "?"
+			args = append(args, userId)
+		}
+		userCondition = fmt.Sprintf("and te.user_id in (%s)", strings.Join(placeholders, ","))
+	}
+
+	remainingConditions := `
+		and (
+			? is null
+			or te.date >= ?
+		)
+		and (
+			? is null
+			or te.date <= ?
+		)
+		order by te.date desc`
+
+	stmt := baseStmt + categoryCondition + userCondition + remainingConditions
+
+	args = append(args,
+		filter.FromDate,
+		filter.FromDate,
+		filter.ToDate,
+		filter.ToDate,
+	)
+
+	rows, err := s.db.QueryContext(ctx, stmt, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	entries := []TimeEntry{}
+
+	for rows.Next() {
+		var te TimeEntry
+
+		if err := rows.Scan(
+			&te.Id,
+			&te.CategoryId,
+			&te.Category,
+			&te.UserId,
+			&te.UserName,
+			&te.Date,
+			&te.Duration,
+			&te.Description,
+		); err != nil {
+			return nil, err
+		}
+
+		entries = append(entries, te)
+	}
+
+	return entries, nil
 }

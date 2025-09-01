@@ -31,5 +31,14 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		days: calendarRes.data.days.filter((day) => day.month == monthMap[res.data.month])
 	};
 
-	return { summary: res.data, calendar, date };
+	const userRes = await locals.apiService.getUserProfile(locals.authToken)
+	if (!userRes.ok) {
+		if (userRes.status == 401) {
+			cookies.delete('authToken', {path: '/'})
+			redirect(303, `/auth/login?redirect=${url.pathname}`)
+		}
+		error(userRes.status, userRes.error);
+	}
+
+	return { summary: res.data, calendar, date, user: userRes.data };
 };

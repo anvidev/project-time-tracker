@@ -191,3 +191,37 @@ func (s *Store) List(ctx context.Context) ([]User, error) {
 
 	return users, nil
 }
+
+func (s *Store) GetById(ctx context.Context, id int64) (*User, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	var user User
+
+	stmt := `
+		select id, name, email, hash, is_active, role, created_at
+		from users
+		where id = ?
+	`
+
+	if err := s.db.
+		QueryRowContext(ctx, stmt, id).
+		Scan(
+			&user.Id,
+			&user.Name,
+			&user.Email,
+			&user.Password.hash,
+			&user.IsActive,
+			&user.Role,
+			&user.CreatedAt,
+		); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrUserNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}

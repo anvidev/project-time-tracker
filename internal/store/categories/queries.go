@@ -248,3 +248,25 @@ func (s *Store) ToggleRetire(ctx context.Context, id int64) error {
 
 	return nil
 }
+
+func (s *Store) Get(ctx context.Context, id int64) (*Category, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		select
+			c.id,
+			c.title,
+			coalesce((select title from categories where id = c.parent_id), '') as root_title
+		from categories c
+		where c.id = ?
+	`
+
+	var c Category
+
+	if err := s.db.QueryRowContext(ctx, stmt, id, id).Scan(&c.Id, &c.Title, &c.RootTitle); err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}

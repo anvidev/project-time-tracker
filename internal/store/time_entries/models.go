@@ -9,6 +9,7 @@ type TimeEntry struct {
 	CategoryId  int64          `json:"categoryId"`
 	Category    string         `json:"category"`
 	UserId      int64          `json:"userId"`
+	UserName    string         `json:"userName"`
 	Date        string         `json:"date"` // yyyy-MM-dd (time.DateOnly)
 	Duration    types.Duration `json:"duration"`
 	Description string         `json:"description"`

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -39,6 +38,9 @@ func (api *api) handler() http.Handler {
 
 		r.Route("/me", func(r chi.Router) {
 			r.Use(api.bearerAuthorization)
+			r.Route("/profile", func(r chi.Router) {
+				r.Get("/", api.userProfile)
+			})
 			r.Route("/categories", func(r chi.Router) {
 				r.Get("/", api.entriesCategories)
 				r.Post("/", api.entriesCreateCategory)
@@ -61,6 +63,10 @@ func (api *api) handler() http.Handler {
 				r.Get("/", api.hoursAll)
 				r.Put("/", api.update)
 			})
+		})
+
+		r.Route("/admin", func(r chi.Router) {
+			r.Get("/time_entries", api.adminTimeEntries)
 		})
 
 	})
@@ -127,7 +133,6 @@ func NewApiContext(ctx context.Context) (*api, error) {
 		logger.Error("error", "err", err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("config is: %+v\n", config)
 
 	docs := initDocumentation(config)
 	mails := mailer.NewResendMailer(config.Resend.ApiKey, config.Resend.From)
