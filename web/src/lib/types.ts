@@ -6,6 +6,15 @@ export interface Session {
 	updatedAt: string;
 }
 
+export interface User {
+    id: number,
+    name: string
+    email: string
+    role: 'employee' | 'employer'
+    isActive: boolean
+    createdAt: string
+}
+
 export interface NewCategory {
 	parentId: number | null;
 	title: string;

@@ -36,9 +36,12 @@ type TimeEntriesStorer interface {
 	Delete(ctx context.Context, id, userId int64) error
 	SummaryDay(ctx context.Context, userId int64, date time.Time) (*time_entries.SummaryDay, error)
 	SummaryMonth(ctx context.Context, userId int64, month time.Month, year int) (*time_entries.SummaryMonth, error)
+	CategoryTotal(ctx context.Context, categoryId int64) (time.Duration, error)
+	List(ctx context.Context, filters time_entries.Filters) ([]time_entries.TimeEntry, error)
 }
 
 type CategoriesStorer interface {
+	Get(ctx context.Context, id int64) (*categories.Category, error)
 	Create(ctx context.Context, input categories.CreateCategoryInput) (*categories.Category, error)
 	Update(ctx context.Context, id int64, title string) (*categories.Category, error)
 	ToggleRetire(ctx context.Context, id int64) error
@@ -57,6 +60,7 @@ type SessionStorer interface {
 type UserStorer interface {
 	Register(ctx context.Context, input users.RegisterUserInput) (*users.User, error)
 	GetByEmail(ctx context.Context, email string) (*users.User, error)
+	GetById(ctx context.Context, id int64) (*users.User, error)
 	List(ctx context.Context) ([]users.User, error)
 }
 

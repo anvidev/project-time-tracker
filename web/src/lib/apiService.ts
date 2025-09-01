@@ -12,6 +12,7 @@ import type {
 	SummaryMonthDTO,
 	TimeEntry,
 	UpdateTimeEntryInput,
+	User,
 	WeekdayHours,
 	WeekdayHoursDTO
 } from './types';
@@ -62,6 +63,7 @@ export type ApiService = {
 	getCalendarYear: (year: number) => Promise<ServiceResponse<Calendar>>;
 	getMaxHours: (authToken: string) => Promise<ServiceResponse<WeekdayHours[]>>;
 	updateMaxHours: (data: WeekdayHoursDTO[], authToken: string) => Promise<ServiceResponse<null>>;
+	getUserProfile: (authToken: string) => Promise<ServiceResponse<User>>;
 };
 
 let apiServiceInstance: ApiService | undefined;
@@ -558,7 +560,34 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
-			}
+			},
+			getUserProfile: async function(authToken: string): Promise<ServiceResponse<User>> {
+				const res = await fetch(`${baseUrl}/v1/me/profile`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res
+							.json()
+							.then((json) => json.user as User)
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
 		};
 	}
 
