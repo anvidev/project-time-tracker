@@ -592,7 +592,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 				};
 			},
 			getAdminEntries: async function (authToken: string): Promise<ServiceResponse<AdminEntry>> {
-				const res = await fetch(`${baseUrl}/v1/admin/time_entries?query=6mth`, {
+				const res = await fetch(`${baseUrl}/v1/admin/time_entries?categoryId=7,47,48,46`, {
 					headers: {
 						Authorization: `Bearer ${authToken}`
 					}
