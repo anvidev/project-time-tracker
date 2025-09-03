@@ -57,7 +57,7 @@ func (api *api) adminUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]any{
-		"user": users,
+		"users": users,
 	}
 
 	if err := api.writeJSON(w, http.StatusOK, response); err != nil {

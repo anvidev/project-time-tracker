@@ -42,6 +42,7 @@
 		"zod": "^3.25.67"
 	},
 	"dependencies": {
-		"d3-scale": "^4.0.2"
+		"d3-scale": "^4.0.2",
+		"kit-query-params": "^0.0.26"
 	}
 }

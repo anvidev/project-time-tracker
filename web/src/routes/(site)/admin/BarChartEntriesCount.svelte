@@ -51,25 +51,29 @@
 		return { chartData, categories: allCategories };
 	}
 
-	const { chartData, categories } = transformData(entries);
+	const { chartData, categories } = $derived(transformData(entries));
 
-	const chartConfig = categories.reduce(
-		(config, category, index) => {
-			config[category] = {
-				label: category,
-				color: chartColors[index % chartColors.length]
-			};
-			return config;
-		},
-		{} as Record<string, { label: string; color: string }>
+	const chartConfig = $derived(
+		categories.reduce(
+			(config, category, index) => {
+				config[category] = {
+					label: category,
+					color: chartColors[index % chartColors.length]
+				};
+				return config;
+			},
+			{} as Record<string, { label: string; color: string }>
+		)
 	);
 
-	const series = categories.map((category, index) => ({
-		key: category,
-		label: category,
-		color: chartConfig[category].color,
-		props: index === 0 ? { rounded: 'bottom' } : {}
-	}));
+	const series = $derived(
+		categories.map((category, index) => ({
+			key: category,
+			label: category,
+			color: chartConfig[category].color,
+			props: index === 0 ? { rounded: 'bottom' } : {}
+		}))
+	);
 
 	let context = $state<ChartContextValue>();
 </script>

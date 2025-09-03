@@ -65,7 +65,12 @@ export type ApiService = {
 	getMaxHours: (authToken: string) => Promise<ServiceResponse<WeekdayHours[]>>;
 	updateMaxHours: (data: WeekdayHoursDTO[], authToken: string) => Promise<ServiceResponse<null>>;
 	getUserProfile: (authToken: string) => Promise<ServiceResponse<User>>;
-	getAdminEntries: (authToken: string) => Promise<ServiceResponse<AdminEntry>>;
+	getAdminEntries: (
+		authToken: string,
+		searchParams: URLSearchParams
+	) => Promise<ServiceResponse<AdminEntry>>;
+	getAllCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
+	getAllUsers: (authToken: string) => Promise<ServiceResponse<User[]>>;
 };
 
 let apiServiceInstance: ApiService | undefined;
@@ -591,8 +596,11 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			getAdminEntries: async function (authToken: string): Promise<ServiceResponse<AdminEntry>> {
-				const res = await fetch(`${baseUrl}/v1/admin/time_entries?categoryId=7,47,48,46`, {
+			getAdminEntries: async function (
+				authToken: string,
+				searchParams: URLSearchParams
+			): Promise<ServiceResponse<AdminEntry>> {
+				const res = await fetch(`${baseUrl}/v1/admin/time_entries?${searchParams.toString()}`, {
 					headers: {
 						Authorization: `Bearer ${authToken}`
 					}
@@ -609,6 +617,56 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 								duration: parseDuration(entry.duration)
 							}))
 						}))) as AdminEntry
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			getAllCategories: async function (authToken: string): Promise<ServiceResponse<Category[]>> {
+				const res = await fetch(`${baseUrl}/v1/admin/categories`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json().then((json) => json.categories)) as Category[]
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			getAllUsers: async function (authToken: string): Promise<ServiceResponse<User[]>> {
+				const res = await fetch(`${baseUrl}/v1/admin/users`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json().then((json) => json.users)) as User[]
 					};
 				}
 
