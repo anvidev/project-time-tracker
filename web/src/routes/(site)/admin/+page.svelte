@@ -7,13 +7,13 @@
 	import FilterEntries from './FilterEntries.svelte';
 
 	const { data } = $props();
-	const { entries } = $derived(data);
+	const { entries, categories, users } = $derived(data);
 </script>
 
 <h1>admin</h1>
 
 <div class="w-full">
-	<FilterEntries />
+	<FilterEntries {users} {categories} />
 </div>
 
 <div class="flex w-full flex-col gap-4 lg:flex-row lg:items-center">
