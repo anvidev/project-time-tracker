@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import type {
+	AdminEntry,
 	Calendar,
 	Category,
 	CategoryTree,
@@ -64,6 +65,7 @@ export type ApiService = {
 	getMaxHours: (authToken: string) => Promise<ServiceResponse<WeekdayHours[]>>;
 	updateMaxHours: (data: WeekdayHoursDTO[], authToken: string) => Promise<ServiceResponse<null>>;
 	getUserProfile: (authToken: string) => Promise<ServiceResponse<User>>;
+	getAdminEntries: (authToken: string) => Promise<ServiceResponse<AdminEntry>>;
 };
 
 let apiServiceInstance: ApiService | undefined;
@@ -74,7 +76,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 	if (apiServiceInstance == undefined) {
 		apiServiceInstance = {
 			// AUTH FUNCTIONS
-			register: async function(data: {
+			register: async function (data: {
 				name: string;
 				email: string;
 				password: string;
@@ -102,7 +104,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			logIn: async function(data: {
+			logIn: async function (data: {
 				email: string;
 				password: string;
 			}): Promise<ServiceResponse<Session>> {
@@ -131,7 +133,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 			},
 
 			// CATEGORIES
-			getUserCategories: async function(authToken: string): Promise<ServiceResponse<Category[]>> {
+			getUserCategories: async function (authToken: string): Promise<ServiceResponse<Category[]>> {
 				const res = await fetch(`${baseUrl}/v1/me/categories`, {
 					headers: {
 						Authorization: `Bearer ${authToken}`
@@ -168,7 +170,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 				}
 			},
 
-			getCategories: async function(authToken: string): Promise<ServiceResponse<CategoryTree[]>> {
+			getCategories: async function (authToken: string): Promise<ServiceResponse<CategoryTree[]>> {
 				const res = await fetch(`${baseUrl}/v1/me/categories/all`, {
 					headers: {
 						Authorization: `Bearer ${authToken}`
@@ -204,7 +206,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					};
 				}
 			},
-			createCategory: async function(
+			createCategory: async function (
 				data: NewCategory,
 				authToken: string
 			): Promise<ServiceResponse<Category>> {
@@ -235,7 +237,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 				};
 			},
 
-			followCategory: async function(
+			followCategory: async function (
 				id: number,
 				authToken: string
 			): Promise<ServiceResponse<null>> {
@@ -264,7 +266,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			unfollowCategory: async function(
+			unfollowCategory: async function (
 				id: number,
 				authToken: string
 			): Promise<ServiceResponse<null>> {
@@ -295,7 +297,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 			},
 
 			// TIME_ENTRIES
-			createTimeEntry: async function(
+			createTimeEntry: async function (
 				data: RegisterTimeEntryInput,
 				authToken: string
 			): Promise<ServiceResponse<TimeEntry>> {
@@ -328,7 +330,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			updateTimeEntry: async function(
+			updateTimeEntry: async function (
 				id: number,
 				data: UpdateTimeEntryInput,
 				authToken: string
@@ -362,7 +364,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			deleteTimeEntry: async function(
+			deleteTimeEntry: async function (
 				id: number,
 				authToken: string
 			): Promise<ServiceResponse<undefined>> {
@@ -391,7 +393,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			getSummaryForDate: async function(
+			getSummaryForDate: async function (
 				date: Date | string,
 				authToken: string
 			): Promise<ServiceResponse<SummaryDay>> {
@@ -439,7 +441,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			getSummaryForMonth: async function(
+			getSummaryForMonth: async function (
 				monthStr: string,
 				authToken: string
 			): Promise<ServiceResponse<SummaryMonth>> {
@@ -485,7 +487,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			getCalendarYear: async function(year: number): Promise<ServiceResponse<Calendar>> {
+			getCalendarYear: async function (year: number): Promise<ServiceResponse<Calendar>> {
 				const res = await fetch(`https://api.kalendarium.dk/MinimalCalendar/${year}`);
 
 				if (res.ok) {
@@ -501,7 +503,7 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: await res.text()
 				};
 			},
-			getMaxHours: async function(authToken: string): Promise<ServiceResponse<WeekdayHours[]>> {
+			getMaxHours: async function (authToken: string): Promise<ServiceResponse<WeekdayHours[]>> {
 				const res = await fetch(`${baseUrl}/v1/me/hours`, {
 					headers: {
 						Authorization: `Bearer ${authToken}`
@@ -534,46 +536,22 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
-			updateMaxHours: async function (data: WeekdayHoursDTO[], authToken: string): Promise<ServiceResponse<null>> {
+			updateMaxHours: async function (
+				data: WeekdayHoursDTO[],
+				authToken: string
+			): Promise<ServiceResponse<null>> {
 				const res = await fetch(`${baseUrl}/v1/me/hours`, {
 					method: 'put',
 					headers: {
 						Authorization: `Bearer ${authToken}`
 					},
-					body: JSON.stringify({hours: data}),
-				})
-				
-				if (res.ok) {
-					return {
-						ok: true,
-						data: null,
-					}
-				}
-
-				const body: {
-					error: string;
-					code: string;
-				} = await res.json();
-
-				return {
-					ok: false,
-					status: res.status,
-					error: `${body.code}: ${body.error}`
-				};
-			},
-			getUserProfile: async function(authToken: string): Promise<ServiceResponse<User>> {
-				const res = await fetch(`${baseUrl}/v1/me/profile`, {
-					headers: {
-						Authorization: `Bearer ${authToken}`
-					}
+					body: JSON.stringify({ hours: data })
 				});
 
 				if (res.ok) {
 					return {
 						ok: true,
-						data: await res
-							.json()
-							.then((json) => json.user as User)
+						data: null
 					};
 				}
 
@@ -588,6 +566,63 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					error: `${body.code}: ${body.error}`
 				};
 			},
+			getUserProfile: async function (authToken: string): Promise<ServiceResponse<User>> {
+				const res = await fetch(`${baseUrl}/v1/me/profile`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: await res.json().then((json) => json.user as User)
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			},
+			getAdminEntries: async function (authToken: string): Promise<ServiceResponse<AdminEntry>> {
+				const res = await fetch(`${baseUrl}/v1/admin/time_entries?query=6mth`, {
+					headers: {
+						Authorization: `Bearer ${authToken}`
+					}
+				});
+
+				if (res.ok) {
+					return {
+						ok: true,
+						data: (await res.json().then((json) => ({
+							...json,
+							timeSpent: parseDuration(json.timeSpent),
+							entries: json.entries.map((entry: any) => ({
+								...entry,
+								duration: parseDuration(entry.duration)
+							}))
+						}))) as AdminEntry
+					};
+				}
+
+				const body: {
+					error: string;
+					code: string;
+				} = await res.json();
+
+				return {
+					ok: false,
+					status: res.status,
+					error: `${body.code}: ${body.error}`
+				};
+			}
 		};
 	}
 
