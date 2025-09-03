@@ -67,6 +67,8 @@ func (api *api) handler() http.Handler {
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Get("/time_entries", api.adminTimeEntries)
+			r.Get("/users", api.adminUsers)
+			r.Get("/categories", api.adminCategories)
 		})
 
 	})

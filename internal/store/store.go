@@ -49,6 +49,7 @@ type CategoriesStorer interface {
 	Follow(ctx context.Context, id, userId int64) error
 	Unfollow(ctx context.Context, id, userId int64) error
 	Tree(ctx context.Context, userId int64) ([]*categories.CategoryTree, error)
+	List(ctx context.Context) ([]categories.Category, error)
 }
 
 type SessionStorer interface {

@@ -270,3 +270,35 @@ func (s *Store) Get(ctx context.Context, id int64) (*Category, error) {
 
 	return &c, nil
 }
+
+func (s *Store) List(ctx context.Context) ([]Category, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
+	defer cancel()
+
+	stmt := `
+		select
+			c.id,
+			c.title,
+			coalesce((select title from categories where id = c.parent_id), '') as root_title
+		from categories c
+	`
+
+	rows, err := s.db.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := []Category{}
+
+	for rows.Next() {
+		var c Category
+		if err := rows.Scan(&c.Id, &c.Title, &c.RootTitle); err != nil {
+			return nil, err
+		}
+
+		categories = append(categories, c)
+	}
+
+	return categories, nil
+}
