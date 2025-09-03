@@ -78,7 +78,7 @@
 		<ChartPie class="mb-auto text-blue-500" />
 		<div>
 			<p class="text-lg leading-none font-bold">{toDurationString(totalTime)}</p>
-			<small class="text-muted-foreground text-xs">Total tid denne måned</small>
+			<small class="text-muted-foreground text-xs">Registreret ud af {toDurationString(summary.maxHours)}</small>
 		</div>
 	</div>
 

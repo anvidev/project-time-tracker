@@ -7,12 +7,12 @@ export interface Session {
 }
 
 export interface User {
-    id: number,
-    name: string
-    email: string
-    role: 'employee' | 'employer'
-    isActive: boolean
-    createdAt: string
+	id: number;
+	name: string;
+	email: string;
+	role: 'employee' | 'employer';
+	isActive: boolean;
+	createdAt: string;
 }
 
 export interface NewCategory {
@@ -36,13 +36,13 @@ export interface CategoryTree {
 }
 
 export interface WeekdayHours {
-	weekday: WeekDay,
-	hours: Duration
+	weekday: WeekDay;
+	hours: Duration;
 }
 
 export interface WeekdayHoursDTO {
-	weekday: number,
-	hours: GoDurationString
+	weekday: number;
+	hours: GoDurationString;
 }
 
 export interface RegisterTimeEntryInput {
@@ -121,6 +121,7 @@ export interface TimeEntry {
 	categoryId: number;
 	category: string;
 	userId: number;
+	userName: string;
 	date: string;
 	duration: Duration;
 	description: string;
@@ -131,6 +132,7 @@ export interface TimeEntryDTO {
 	categoryId: number;
 	category: string;
 	userId: number;
+	userName: string;
 	date: string;
 	duration: GoDurationString;
 	description: string;
@@ -180,3 +182,8 @@ export interface Event {
 }
 
 export type WeekDay = 'Mandag' | 'Tirsdag' | 'Onsdag' | 'Torsdag' | 'Fredag' | 'Lørdag' | 'Søndag';
+
+export type AdminEntry = {
+	entries: TimeEntry[];
+	timeSpent: Duration;
+};

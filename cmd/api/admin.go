@@ -32,7 +32,6 @@ func (api *api) adminTimeEntries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entriesCount := len(entries)
 	var timeSpent time.Duration
 
 	for _, entry := range entries {
@@ -40,7 +39,6 @@ func (api *api) adminTimeEntries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]any{
-		"entriesCount": entriesCount,
 		"timeSpent":    timeSpent.String(),
 		"entries":      entries,
 	}
