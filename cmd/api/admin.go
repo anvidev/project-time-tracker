@@ -39,8 +39,42 @@ func (api *api) adminTimeEntries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]any{
-		"timeSpent":    timeSpent.String(),
-		"entries":      entries,
+		"timeSpent": timeSpent.String(),
+		"entries":   entries,
+	}
+
+	if err := api.writeJSON(w, http.StatusOK, response); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (api *api) adminUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := api.store.Users.List(r.Context())
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	response := map[string]any{
+		"user": users,
+	}
+
+	if err := api.writeJSON(w, http.StatusOK, response); err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (api *api) adminCategories(w http.ResponseWriter, r *http.Request) {
+	categories, err := api.store.Categories.List(r.Context())
+	if err != nil {
+		api.internalServerError(w, r, err)
+		return
+	}
+
+	response := map[string]any{
+		"categories": categories,
 	}
 
 	if err := api.writeJSON(w, http.StatusOK, response); err != nil {
