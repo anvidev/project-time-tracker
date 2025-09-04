@@ -22,8 +22,8 @@
 	const { users, categories }: { users: User[]; categories: Category[] } = $props();
 </script>
 
-<div class="flex items-center gap-2">
-	<div class="grid gap-1.5">
+<div class="flex flex-col items-center gap-2 lg:flex-row">
+	<div class="grid w-full gap-1.5 lg:w-auto">
 		<Label>Beskrivelse</Label>
 		<Input bind:value={queryParams.query} placeholder="Søg i beskrivelse..." />
 	</div>
@@ -31,5 +31,7 @@
 	<FilterUsers {users} bind:param={queryParams.userId} />
 	<FilterDate bind:param={queryParams.fromDate} label="Fra dato" />
 	<FilterDate bind:param={queryParams.toDate} label="Til dato" />
-	<Button variant="ghost" class="self-end" onclick={() => queryParams.$reset()}>Nulstil</Button>
+	<Button variant="ghost" class="w-full self-end lg:w-auto" onclick={() => queryParams.$reset()}
+		>Nulstil</Button
+	>
 </div>

@@ -27,15 +27,15 @@
 	}
 </script>
 
-<div class="grid gap-1.5">
+<div class="grid w-full gap-1.5 lg:w-auto">
 	<Label>Kategori</Label>
 	<Popover.Root bind:open>
 		<Popover.Trigger bind:ref={triggerRef}>
 			{#snippet child({ props })}
 				<Button
 					variant="outline"
-					class="w-[200px] justify-between"
 					{...props}
+					class="justify-between"
 					role="combobox"
 					aria-expanded={open}
 				>

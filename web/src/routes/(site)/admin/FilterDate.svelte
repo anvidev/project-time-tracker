@@ -51,18 +51,15 @@
 	}
 </script>
 
-<div class="grid gap-1.5">
+<div class="grid w-full gap-1.5 lg:w-auto">
 	<Label>{label}</Label>
 	<Popover.Root>
 		<Popover.Trigger>
 			{#snippet child({ props })}
 				<Button
-					variant="outline"
-					class={cn(
-						'w-[280px] justify-start text-left font-normal',
-						!value && 'text-muted-foreground'
-					)}
 					{...props}
+					variant="outline"
+					class={cn('justify-start text-left font-normal', !value && 'text-muted-foreground')}
 				>
 					<CalendarIcon class="mr-2 size-4" />
 					{value ? df.format(value.toDate(getLocalTimeZone())) : placeholder}

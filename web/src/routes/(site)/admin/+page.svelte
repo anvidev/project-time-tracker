@@ -15,15 +15,15 @@
 </div>
 
 <div class="flex w-full flex-col gap-4 lg:flex-row lg:items-center">
-	<div class="w-1/3">
+	<div class="lg:w-1/3">
 		<PieChartEntriesCount entries={entries.entries} />
 	</div>
 
-	<div class="w-1/3">
+	<div class="lg:w-1/3">
 		<PieChartEntriesHours entries={entries.entries} timeSpent={entries.timeSpent} />
 	</div>
 
-	<div class="w-1/3">
+	<div class="lg:w-1/3">
 		<PieChartEntriesUsers entries={entries.entries} />
 	</div>
 </div>

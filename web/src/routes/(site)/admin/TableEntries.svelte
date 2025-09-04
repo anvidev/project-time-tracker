@@ -95,11 +95,11 @@
 	</div>
 
 	<div class="flex items-center gap-3">
-		<Button variant="outline" size="icon" onclick={() => navigate(-1)}>
+		<Button disabled={page <= 1} variant="outline" size="icon" onclick={() => navigate(-1)}>
 			<ArrowLeft />
 		</Button>
 		<p class="text-muted-foreground text-sm">Side {page} af {maxPages}</p>
-		<Button variant="outline" size="icon" onclick={() => navigate(1)}>
+		<Button disabled={page >= maxPages} variant="outline" size="icon" onclick={() => navigate(1)}>
 			<ArrowRight />
 		</Button>
 	</div>

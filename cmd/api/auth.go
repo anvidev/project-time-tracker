@@ -71,6 +71,7 @@ func (api *api) authLogin(w http.ResponseWriter, r *http.Request) {
 
 	response := map[string]any{
 		"session": session,
+		"user": user,
 	}
 
 	if err := api.writeJSON(w, http.StatusCreated, response); err != nil {
