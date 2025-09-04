@@ -1,9 +1,26 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { parseURL } from 'kit-query-params';
+import { formatDate } from 'date-fns';
 
 export const load: PageServerLoad = async ({ locals, cookies, url }) => {
-	const searchParams = url.searchParams;
-	console.log('url', searchParams.toString());
+	const queryParams = parseURL(url, {
+		query: 'string',
+		categoryId: ['number'],
+		userId: ['number'],
+		fromDate: 'date',
+		toDate: 'date'
+	});
+	const searchParams = new URLSearchParams();
+	searchParams.set('categoryId', queryParams.categoryId.join(','));
+	searchParams.set('userId', queryParams.userId.join(','));
+	searchParams.set('query', queryParams.query ?? '');
+	if (queryParams.fromDate) {
+		searchParams.set('fromDate', formatDate(queryParams.fromDate, 'yyyy-MM-dd'));
+	}
+	if (queryParams.toDate) {
+		searchParams.set('toDate', formatDate(queryParams.toDate, 'yyyy-MM-dd'));
+	}
 	const entries = await locals.apiService.getAdminEntries(locals.authToken, searchParams);
 	if (!entries.ok) {
 		if (entries.status == 401) {
