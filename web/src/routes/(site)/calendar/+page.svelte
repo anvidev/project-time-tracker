@@ -5,9 +5,10 @@
 	import type { WeekDay } from '$lib/types';
 	import CalendarDayLink from './CalendarDayLink.svelte';
 	import MonthPicker from './MonthPicker.svelte';
-	import { ChartPie, Hourglass } from '@lucide/svelte';
-	import { toDurationString, weekDayMap } from '$lib/utils';
+	import { ChartPie, ChartPieIcon, Hourglass } from '@lucide/svelte';
+	import { cn, toDurationString, weekDayMap } from '$lib/utils';
 	import UserDropdown from './UserDropdown.svelte';
+	import { buttonVariants } from '$lib/components/ui/button';
 
 	const { data }: PageProps = $props();
 
@@ -67,25 +68,29 @@
 	<Navbar.Title class="hidden md:block">Kalender</Navbar.Title>
 	<Navbar.Action side="right">
 		{#if user.role == 'employer'}
-			<a href="/admin">employer</a>
+			<a class={cn(buttonVariants({ variant: 'outline', size: 'icon' }))} href="/admin">
+				<ChartPieIcon />
+			</a>
 		{/if}
 		<UserDropdown />
 	</Navbar.Action>
 </Navbar.Root>
 
 <div class="flex w-full flex-col items-center gap-4 md:flex-row">
-	<div class="flex w-full items-center gap-4 rounded-md border p-4 shadow-xs">
+	<div class="shadow-xs flex w-full items-center gap-4 rounded-md border p-4">
 		<ChartPie class="mb-auto text-blue-500" />
 		<div>
-			<p class="text-lg leading-none font-bold">{toDurationString(totalTime)}</p>
-			<small class="text-muted-foreground text-xs">Registreret ud af {toDurationString(summary.maxHours)}</small>
+			<p class="text-lg font-bold leading-none">{toDurationString(totalTime)}</p>
+			<small class="text-muted-foreground text-xs"
+				>Registreret ud af {toDurationString(summary.maxHours)}</small
+			>
 		</div>
 	</div>
 
-	<div class="flex w-full items-center gap-4 rounded-md border p-4 shadow-xs">
+	<div class="shadow-xs flex w-full items-center gap-4 rounded-md border p-4">
 		<Hourglass class="mb-auto text-purple-500" />
 		<div>
-			<p class="text-lg leading-none font-bold">
+			<p class="text-lg font-bold leading-none">
 				{toDurationString(totalTime > 0 && daysWithEntries > 0 ? totalTime / daysWithEntries : 0)}
 			</p>
 			<small class="text-muted-foreground text-xs">Gennemsnitlig daglig tid</small>
