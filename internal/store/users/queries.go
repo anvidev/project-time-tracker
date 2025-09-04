@@ -160,7 +160,17 @@ func (s *Store) List(ctx context.Context) ([]User, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.queryTimeout)
 	defer cancel()
 
-	stmt := `select id, name, email, role, is_active, created_at from users`
+	stmt := `
+		select
+			id,
+			name,
+			email,
+			role,
+			is_active,
+			created_at
+		from users
+		order by id
+	`
 
 	rows, err := s.db.QueryContext(ctx, stmt)
 	if err != nil {

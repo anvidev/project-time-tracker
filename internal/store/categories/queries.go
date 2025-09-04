@@ -281,6 +281,7 @@ func (s *Store) List(ctx context.Context) ([]Category, error) {
 			c.title,
 			coalesce((select title from categories where id = c.parent_id), '') as root_title
 		from categories c
+		order by id
 	`
 
 	rows, err := s.db.QueryContext(ctx, stmt)

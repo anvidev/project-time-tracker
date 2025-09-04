@@ -10,8 +10,6 @@
 	const { entries, categories, users } = $derived(data);
 </script>
 
-<h1>admin</h1>
-
 <div class="w-full">
 	<FilterEntries {users} {categories} />
 </div>
@@ -34,6 +32,4 @@
 	<BarChartEntriesCount entries={entries.entries} />
 </div>
 
-<div class="bg-background w-full rounded-md border shadow-sm">
-	<TableEntries entries={entries.entries} />
-</div>
+<TableEntries entries={entries.entries} />
