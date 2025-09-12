@@ -47,7 +47,9 @@
 							entry.description == '' && 'text-muted-foreground'
 						)}>{entry.description != '' ? entry.description : 'Ingen beskrivelse'}</Table.Cell
 					>
-					<Table.Cell class="w-44 text-right">{toDurationString(entry.duration)}</Table.Cell>
+					<Table.Cell class="w-44 text-right tabular-nums"
+						>{toDurationString(entry.duration)}</Table.Cell
+					>
 					<Table.Cell class="flex w-20 justify-end">
 						<Dialog.Root>
 							<Dialog.Trigger
