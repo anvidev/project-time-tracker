@@ -70,7 +70,9 @@
 				<Table.Row>
 					<Table.Cell class="">{row.category}</Table.Cell>
 					<Table.Cell class="w-44">{row.occurrence}</Table.Cell>
-					<Table.Cell class="w-44 text-right">{toDurationString(row.duration)}</Table.Cell>
+					<Table.Cell class="w-44 text-right tabular-nums"
+						>{toDurationString(row.duration)}</Table.Cell
+					>
 				</Table.Row>
 			{/each}
 		</Table.Body>
