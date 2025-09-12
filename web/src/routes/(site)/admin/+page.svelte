@@ -5,6 +5,7 @@
 	import BarChartEntriesCount from './BarChartEntriesCount.svelte';
 	import TableEntries from './TableEntries.svelte';
 	import FilterEntries from './FilterEntries.svelte';
+	import TableCategories from './TableCategories.svelte';
 
 	const { data } = $props();
 	const { entries, categories, users } = $derived(data);
@@ -32,4 +33,12 @@
 	<BarChartEntriesCount entries={entries.entries} />
 </div>
 
-<TableEntries entries={entries.entries} />
+<div class="mt-2 w-full space-y-3">
+	<h2 class="font-semibold leading-none">Timer fordelt på kategorier</h2>
+	<TableCategories entries={entries.entries} />
+</div>
+
+<div class="mt-2 w-full space-y-3">
+	<h2 class="font-semibold leading-none">Tidsregistreringer</h2>
+	<TableEntries entries={entries.entries} />
+</div>
