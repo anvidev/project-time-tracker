@@ -59,6 +59,16 @@ func (api *api) handler() http.Handler {
 				r.Get("/month/{year-month}", api.entriesSummaryMonth) // month: YYYY-MM
 			})
 
+			r.Route("/timer", func(r chi.Router) {
+				r.Get("/", api.timerGet)
+				r.Put("/", api.timerUpdate)
+				r.Delete("/", api.timerDiscard)
+				r.Post("/start", api.timerStart)
+				r.Post("/pause", api.timerPause)
+				r.Post("/resume", api.timerResume)
+				r.Post("/save", api.timerSave)
+			})
+
 			r.Route("/hours", func(r chi.Router) {
 				r.Get("/", api.hoursAll)
 				r.Put("/", api.update)

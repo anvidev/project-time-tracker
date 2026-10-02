@@ -2,7 +2,8 @@ import { z } from 'zod';
 import type { Actions, PageServerLoad } from './$types';
 import { fail, message, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { error, redirect } from '@sveltejs/kit';
+import { error, redirect, type RequestEvent } from '@sveltejs/kit';
+import type { ServiceResponse } from '$lib/apiService';
 import { durationStringToGoDurationString, Hour, toGoDurationString } from '$lib/utils';
 import { getLocalTimeZone, parseDate } from '@internationalized/date';
 import type { Category, CategoryTree, DurationString, UpdateTimeEntryInput } from '$lib/types';
@@ -57,11 +58,19 @@ export const load: PageServerLoad = async ({ locals, cookies, url, params }) => 
 		error(categoriesRes.status, categoriesRes.error);
 	}
 
-	const categories = categoriesRes.data.flatMap(tree => flattenCategoryTree(tree));
+	// always list the categories in the same order, whatever order the API returned them in
+	const collator = new Intl.Collator('da', { sensitivity: 'base' });
+	const categories = categoriesRes.data
+		.flatMap((tree) => flattenCategoryTree(tree))
+		.sort((a, b) => collator.compare(a.rootTitle, b.rootTitle) || collator.compare(a.title, b.title));
+
+	// the live timer is optional for the page, so a failure here should not break it
+	const timerRes = await locals.apiService.getTimer(locals.authToken);
 
 	return {
 		createForm,
 		categories,
+		timer: timerRes.ok ? timerRes.data : null,
 		daySummary: daySummaryRes.data
 	};
 };
@@ -108,7 +117,80 @@ const flattenCategoryTree = (tree: CategoryTree): Category[] => {
 	}
 };
 
+type TimerRun = (data: FormData, locals: App.Locals) => Promise<ServiceResponse<unknown>>;
+
+const formString = (data: FormData, key: string) => {
+	const value = data.get(key);
+	return typeof value == 'string' ? value : undefined;
+};
+
+// saves the description if the form has one, so it is not lost when the timer changes state
+const syncDescription = async (data: FormData, locals: App.Locals) => {
+	const description = formString(data, 'description');
+	if (description == undefined) {
+		return;
+	}
+
+	await locals.apiService.updateTimer({ description }, locals.authToken);
+};
+
+const timerAction =
+	(run: TimerRun) =>
+	async ({ request, locals, cookies, url }: RequestEvent) => {
+		const data = await request.formData();
+		const res = await run(data, locals);
+
+		if (res.ok) {
+			return { success: true };
+		}
+
+		if (res.status == 401) {
+			cookies.delete('authToken', { path: '/' });
+			redirect(303, `/auth/login?redirect=${url.pathname}`);
+		}
+
+		return fail(res.status, { error: res.error });
+	};
+
 export const actions: Actions = {
+	startTimer: timerAction(async (data, locals) => {
+		const categoryId = Number(formString(data, 'categoryId'));
+		if (!Number.isInteger(categoryId) || categoryId <= 0) {
+			return { ok: false, status: 400, error: 'Vælg en kategori' };
+		}
+
+		return await locals.apiService.startTimer(
+			{
+				categoryId,
+				description: formString(data, 'description'),
+				date: formString(data, 'date')
+			},
+			locals.authToken
+		);
+	}),
+	pauseTimer: timerAction(async (data, locals) => {
+		await syncDescription(data, locals);
+		return await locals.apiService.pauseTimer(locals.authToken);
+	}),
+	resumeTimer: timerAction(async (data, locals) => {
+		await syncDescription(data, locals);
+		return await locals.apiService.resumeTimer(locals.authToken);
+	}),
+	updateTimer: timerAction(async (data, locals) => {
+		return await locals.apiService.updateTimer(
+			{ description: formString(data, 'description') },
+			locals.authToken
+		);
+	}),
+	saveTimer: timerAction(async (data, locals) => {
+		return await locals.apiService.saveTimer(
+			{ description: formString(data, 'description') },
+			locals.authToken
+		);
+	}),
+	discardTimer: timerAction(async (_data, locals) => {
+		return await locals.apiService.discardTimer(locals.authToken);
+	}),
 	createTimeEntry: async ({ request, locals, cookies, url }) => {
 		const form = await superValidate(request, zod(createTimeEntrySchema));
 		if (!form.valid) {

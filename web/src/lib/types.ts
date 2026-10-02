@@ -57,6 +57,37 @@ export interface UpdateTimeEntryInput {
 	description: string;
 }
 
+export type LiveTimerStatus = 'running' | 'paused';
+
+export interface LiveTimer {
+	categoryId: number;
+	description: string;
+	status: LiveTimerStatus;
+	date: string;
+	elapsed: Duration;
+	serverTime: string;
+}
+
+export interface LiveTimerDTO extends Omit<LiveTimer, 'elapsed'> {
+	elapsed: GoDurationString;
+}
+
+export interface StartLiveTimerInput {
+	categoryId: number;
+	description?: string;
+	date?: string;
+}
+
+export interface UpdateLiveTimerInput {
+	categoryId?: number;
+	description?: string;
+}
+
+export interface SaveLiveTimerInput {
+	duration?: Duration | GoDurationString;
+	description?: string;
+}
+
 export interface SummaryDay {
 	date: string;
 	totalHours: Duration;
