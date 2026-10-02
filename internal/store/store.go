@@ -7,6 +7,7 @@ import (
 
 	"github.com/anvidev/project-time-tracker/internal/store/categories"
 	"github.com/anvidev/project-time-tracker/internal/store/hours"
+	"github.com/anvidev/project-time-tracker/internal/store/live_timers"
 	"github.com/anvidev/project-time-tracker/internal/store/sessions"
 	"github.com/anvidev/project-time-tracker/internal/store/time_entries"
 	"github.com/anvidev/project-time-tracker/internal/store/users"
@@ -18,10 +19,12 @@ type Store struct {
 	Sessions    SessionStorer
 	Users       UserStorer
 	Hours       HourStorer
+	LiveTimers  LiveTimersStorer
 }
 
 func NewStore(db *sql.DB) *Store {
 	return &Store{
+		LiveTimers:  live_timers.NewStore(db),
 		TimeEntries: time_entries.NewStore(db),
 		Categories:  categories.NewStore(db),
 		Sessions:    sessions.NewStore(db),
@@ -63,6 +66,16 @@ type UserStorer interface {
 	GetByEmail(ctx context.Context, email string) (*users.User, error)
 	GetById(ctx context.Context, id int64) (*users.User, error)
 	List(ctx context.Context) ([]users.User, error)
+}
+
+type LiveTimersStorer interface {
+	Get(ctx context.Context, userId int64) (*live_timers.Timer, error)
+	Start(ctx context.Context, userId int64, input live_timers.StartTimerInput) (*live_timers.Timer, error)
+	Pause(ctx context.Context, userId int64) (*live_timers.Timer, error)
+	Resume(ctx context.Context, userId int64) (*live_timers.Timer, error)
+	Update(ctx context.Context, userId int64, input live_timers.UpdateTimerInput) (*live_timers.Timer, error)
+	Save(ctx context.Context, userId int64, input live_timers.SaveTimerInput) (*time_entries.TimeEntry, error)
+	Discard(ctx context.Context, userId int64) error
 }
 
 type HourStorer interface {

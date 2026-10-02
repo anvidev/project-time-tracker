@@ -5,7 +5,7 @@
 	import type { TimeEntry } from '$lib/types';
 	import { ArrowLeft } from '@lucide/svelte';
 	import ProgressCard from './ProgressCard.svelte';
-	import TimeEntryForm from './TimeEntryForm.svelte';
+	import RegisterCard from './RegisterCard.svelte';
 	import TimeEntryOverview from './TimeEntryOverview.svelte';
 	import HourPercentSwitch from './HourPercentSwitch.svelte';
 	import { localStore } from '$lib/stores';
@@ -38,6 +38,11 @@
 	const formattedDate = $derived(dateFormatter.format(new Date(daySummary.date)));
 
 	let usePercentStore = localStore('usePercent', false);
+
+	// the live timer tracks time right now, so it is only offered for today (or while a timer is active)
+	const showLiveTimer = $derived(
+		data.timer != null || data.createForm.data.date == format(new Date(), 'yyyy-MM-dd')
+	);
 </script>
 
 <Navbar.Root>
@@ -61,11 +66,13 @@
 
 <div class="grid w-full grid-cols-2 gap-6">
 	<div class="flex flex-col md:flex-row-reverse col-span-2 gap-6 [&>*]:w-full">
-		<TimeEntryForm
+		<RegisterCard
 			maxHours={daySummary.maxHours / Hour}
 			formData={data.createForm}
 			categories={data.categories}
 			usePercent={$usePercentStore}
+			timer={data.timer}
+			showLive={showLiveTimer}
 		/>
 		<ProgressCard {daySummary} usePercent={$usePercentStore} />
 	</div>

@@ -42,7 +42,8 @@ func (s *Store) Leafs(ctx context.Context, userId int64) ([]Category, error) {
 		from categories c
 		join parent p on c.id = p.id
 		where c.id not in (select id from non_leafs)
-		  and p.path_parent_retired = 0;
+		  and p.path_parent_retired = 0
+		order by p.root_parent_title collate nocase, c.title collate nocase, c.id;
 	`
 
 	rows, err := s.db.QueryContext(ctx, stmt, userId)
@@ -130,7 +131,7 @@ func (s *Store) Tree(ctx context.Context, userId int64) ([]*CategoryTree, error)
 		  c.is_retired,
 		  (select exists(select 1 from users_categories_link where user_id = ? and category_id = c.id)) as is_followed
 		from categories c
-		order by c.parent_id nulls first, c.id
+		order by c.parent_id nulls first, c.title collate nocase, c.id
 	`
 
 	rows, err := s.db.QueryContext(ctx, stmt, userId)
@@ -140,6 +141,8 @@ func (s *Store) Tree(ctx context.Context, userId int64) ([]*CategoryTree, error)
 	defer rows.Close()
 
 	allCategories := make(map[int64]*CategoryTree)
+	// map iteration order is random in Go, so keep the order of the query to build the tree in
+	var order []int64
 	var tree []*CategoryTree
 
 	for rows.Next() {
@@ -157,13 +160,15 @@ func (s *Store) Tree(ctx context.Context, userId int64) ([]*CategoryTree, error)
 
 		category.Children = make([]*CategoryTree, 0)
 		allCategories[category.Id] = &category
+		order = append(order, category.Id)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	for _, category := range allCategories {
+	for _, id := range order {
+		category := allCategories[id]
 		if category.ParentId == nil {
 			tree = append(tree, category)
 		} else {

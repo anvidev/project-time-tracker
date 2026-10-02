@@ -4,14 +4,19 @@ import type {
 	Calendar,
 	Category,
 	CategoryTree,
+	LiveTimer,
+	LiveTimerDTO,
 	NewCategory,
 	RegisterTimeEntryInput,
+	SaveLiveTimerInput,
 	Session,
+	StartLiveTimerInput,
 	SummaryDay,
 	SummaryDayDTO,
 	SummaryMonth,
 	SummaryMonthDTO,
 	TimeEntry,
+	UpdateLiveTimerInput,
 	UpdateTimeEntryInput,
 	User,
 	WeekdayHours,
@@ -71,13 +76,57 @@ export type ApiService = {
 	) => Promise<ServiceResponse<AdminEntry>>;
 	getAllCategories: (authToken: string) => Promise<ServiceResponse<Category[]>>;
 	getAllUsers: (authToken: string) => Promise<ServiceResponse<User[]>>;
+	getTimer: (authToken: string) => Promise<ServiceResponse<LiveTimer | null>>;
+	startTimer: (data: StartLiveTimerInput, authToken: string) => Promise<ServiceResponse<LiveTimer>>;
+	pauseTimer: (authToken: string) => Promise<ServiceResponse<LiveTimer>>;
+	resumeTimer: (authToken: string) => Promise<ServiceResponse<LiveTimer>>;
+	updateTimer: (
+		data: UpdateLiveTimerInput,
+		authToken: string
+	) => Promise<ServiceResponse<LiveTimer>>;
+	saveTimer: (data: SaveLiveTimerInput, authToken: string) => Promise<ServiceResponse<TimeEntry>>;
+	discardTimer: (authToken: string) => Promise<ServiceResponse<undefined>>;
 };
 
 let apiServiceInstance: ApiService | undefined;
 
 export type TApiServiceFactory = (fetch: FetchFn, baseUrl: string) => ApiService;
 
+const parseLiveTimer = (dto: LiveTimerDTO): LiveTimer => ({
+	...dto,
+	elapsed: parseDuration(dto.elapsed) ?? 0
+});
+
+const timerError = async (res: Response): Promise<ErrorServiceResponse<string>> => {
+	const body: { error: string; code: string } = await res.json();
+
+	return {
+		ok: false,
+		status: res.status,
+		error: `${body.code}: ${body.error}`
+	};
+};
+
 export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: string) => {
+	const timerRequest = async (
+		method: string,
+		path: string,
+		authToken: string,
+		data?: unknown
+	): Promise<ServiceResponse<LiveTimer>> => {
+		const res = await fetch(`${baseUrl}/v1/me/timer${path}`, {
+			method,
+			headers: { Authorization: `Bearer ${authToken}` },
+			body: data === undefined ? undefined : JSON.stringify(data)
+		});
+
+		if (res.ok) {
+			return { ok: true, data: parseLiveTimer((await res.json()).timer) };
+		}
+
+		return await timerError(res);
+	};
+
 	if (apiServiceInstance == undefined) {
 		apiServiceInstance = {
 			// AUTH FUNCTIONS
@@ -680,7 +729,73 @@ export const ApiServiceFactory: TApiServiceFactory = (fetch: FetchFn, baseUrl: s
 					status: res.status,
 					error: `${body.code}: ${body.error}`
 				};
-			}
+				},
+
+				// LIVE TIMER
+				getTimer: async function (authToken: string): Promise<ServiceResponse<LiveTimer | null>> {
+					const res = await fetch(`${baseUrl}/v1/me/timer`, {
+						headers: { Authorization: `Bearer ${authToken}` }
+					});
+
+					if (res.ok) {
+						const json = await res.json();
+						return { ok: true, data: json.timer ? parseLiveTimer(json.timer) : null };
+					}
+
+					return await timerError(res);
+				},
+				startTimer: async function (
+					data: StartLiveTimerInput,
+					authToken: string
+				): Promise<ServiceResponse<LiveTimer>> {
+					return await timerRequest('POST', '/start', authToken, data);
+				},
+				pauseTimer: async function (authToken: string): Promise<ServiceResponse<LiveTimer>> {
+					return await timerRequest('POST', '/pause', authToken);
+				},
+				resumeTimer: async function (authToken: string): Promise<ServiceResponse<LiveTimer>> {
+					return await timerRequest('POST', '/resume', authToken);
+				},
+				updateTimer: async function (
+					data: UpdateLiveTimerInput,
+					authToken: string
+				): Promise<ServiceResponse<LiveTimer>> {
+					return await timerRequest('PUT', '', authToken, data);
+				},
+				saveTimer: async function (
+					data: SaveLiveTimerInput,
+					authToken: string
+				): Promise<ServiceResponse<TimeEntry>> {
+					const res = await fetch(`${baseUrl}/v1/me/timer/save`, {
+						method: 'POST',
+						headers: { Authorization: `Bearer ${authToken}` },
+						body: JSON.stringify(data)
+					});
+
+					if (res.ok) {
+						return {
+							ok: true,
+							data: await res.json().then((json) => ({
+								...json.timeEntry,
+								duration: parseDuration(json.timeEntry.duration)
+							}))
+						};
+					}
+
+					return await timerError(res);
+				},
+				discardTimer: async function (authToken: string): Promise<ServiceResponse<undefined>> {
+					const res = await fetch(`${baseUrl}/v1/me/timer`, {
+						method: 'DELETE',
+						headers: { Authorization: `Bearer ${authToken}` }
+					});
+
+					if (res.ok) {
+						return { ok: true, data: undefined };
+					}
+
+					return await timerError(res);
+				}
 		};
 	}
 

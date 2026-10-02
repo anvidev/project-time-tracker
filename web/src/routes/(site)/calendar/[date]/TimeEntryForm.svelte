@@ -9,7 +9,6 @@
 		SelectSeparator,
 		SelectTrigger
 	} from '$lib/components/ui/select';
-	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -69,8 +68,6 @@
 	);
 </script>
 
-<Card>
-	<CardContent class="h-full">
 		<form
 			method="POST"
 			action="?/createTimeEntry"
@@ -158,6 +155,4 @@
 					<LoaderCircle class="animate-spin" />
 				{/if}
 			</Button>
-		</form>
-	</CardContent>
-</Card>
+</form>
